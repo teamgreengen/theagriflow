@@ -38,6 +38,14 @@ import SuperAdminDashboard from './pages/superadmin/Dashboard';
 import SuperAdminAdmins from './pages/superadmin/Admins';
 import SuperAdminUsers from './pages/superadmin/Users';
 import SuperAdminSettings from './pages/superadmin/Settings';
+import SuperAdminAnalytics from './pages/superadmin/Analytics';
+import SuperAdminOrders from './pages/superadmin/Orders';
+import SuperAdminSellers from './pages/superadmin/Sellers';
+import SuperAdminBanners from './pages/superadmin/Banners';
+import SuperAdminCategories from './pages/superadmin/Categories';
+import SuperAdminFinancials from './pages/superadmin/Financials';
+import SuperAdminNotifications from './pages/superadmin/Notifications';
+import SuperAdminActivity from './pages/superadmin/Activity';
 
 import RiderDashboard from './pages/rider/Dashboard';
 import RiderDeliveries from './pages/rider/Deliveries';
@@ -146,7 +154,15 @@ function App() {
                         <Route index element={<SuperAdminDashboard />} />
                         <Route path="admins" element={<SuperAdminAdmins />} />
                         <Route path="users" element={<SuperAdminUsers />} />
-                        <Route path="sellers" element={<SuperAdminUsers />} />
+                        <Route path="sellers" element={<SuperAdminSellers />} />
+                        <Route path="orders" element={<SuperAdminOrders />} />
+                        <Route path="analytics" element={<SuperAdminAnalytics />} />
+                        <Route path="banners" element={<SuperAdminBanners />} />
+                        <Route path="categories" element={<SuperAdminCategories />} />
+                        <Route path=" financials" element={<SuperAdminFinancials />} />
+                        <Route path="financials" element={<SuperAdminFinancials />} />
+                        <Route path="notifications" element={<SuperAdminNotifications />} />
+                        <Route path="activity" element={<SuperAdminActivity />} />
                         <Route path="settings" element={<SuperAdminSettings />} />
                       </Routes>
                     </SuperAdminLayout>
@@ -208,9 +224,18 @@ const SuperAdminLayout = ({ children }) => (
     <aside className="superadmin-sidebar">
       <h2>Super Admin</h2>
       <nav>
-        <a href="/superadmin">Dashboard</a>
-        <a href="/superadmin/admins">Admins</a>
-        <a href="/superadmin/settings">Settings</a>
+        <a href="/superadmin">📊 Dashboard</a>
+        <a href="/superadmin/analytics">📈 Analytics</a>
+        <a href="/superadmin/orders">📦 Orders</a>
+        <a href="/superadmin/users">👥 Users</a>
+        <a href="/superadmin/sellers">🏪 Sellers</a>
+        <a href="/superadmin/banners">🎨 Banners</a>
+        <a href="/superadmin/categories">📁 Categories</a>
+        <a href="/superadmin/financials">💰 Financials</a>
+        <a href="/superadmin/notifications">🔔 Notifications</a>
+        <a href="/superadmin/activity">📝 Activity Logs</a>
+        <a href="/superadmin/admins">⚙️ Admins</a>
+        <a href="/superadmin/settings">🔧 Settings</a>
       </nav>
     </aside>
     <div className="superadmin-content">{children}</div>

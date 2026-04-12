@@ -330,6 +330,235 @@ export const SuperAdminService = {
       .eq('id', orderId);
     if (error) throw error;
     return true;
+  },
+
+  async getTopProducts(limit = 10) {
+    const { data: orders } = await supabase.from('orders').select('items');
+    const productSales = {};
+    
+    orders?.forEach(order => {
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach(item => {
+          if (productSales[item.productId]) {
+            productSales[item.productId].quantity += item.quantity || 1;
+            productSales[item.productId].revenue += (item.price * (item.quantity || 1));
+          } else {
+            productSales[item.productId] = {
+              productId: item.productId,
+              name: item.name,
+              quantity: item.quantity || 1,
+              revenue: item.price * (item.quantity || 1)
+            };
+          }
+        });
+      }
+    });
+
+    const { data: products } = await supabase
+      .from('products')
+      .select('id, name, price, images, sellerId')
+      .in('id', Object.keys(productSales));
+
+    return Object.values(productSales)
+      .map(sale => ({
+        ...sale,
+        product: products?.find(p => p.id === sale.productId)
+      }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, limit);
+  },
+
+  async getSellerRankings(limit = 10) {
+    const { data: sellers } = await supabase
+      .from('sellers')
+      .select('*, user:users(name, email)')
+      .order('totalSales', { ascending: false })
+      .limit(limit);
+
+    return sellers || [];
+  },
+
+  async getAnalytics(days = 30) {
+    const { data: orders } = await supabase
+      .from('orders')
+      .select('created_at, total, status');
+
+    const { data: users } = await supabase
+      .from('users')
+      .select('created_at, role');
+
+    const now = new Date();
+    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
+    const dailyRevenue = {};
+    const dailyOrders = {};
+    const dailyUsers = {};
+
+    for (let i = 0; i < days; i++) {
+      const date = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+      const dateKey = date.toISOString().split('T')[0];
+      dailyRevenue[dateKey] = 0;
+      dailyOrders[dateKey] = 0;
+      dailyUsers[dateKey] = 0;
+    }
+
+    orders?.forEach(order => {
+      const dateKey = new Date(order.created_at).toISOString().split('T')[0];
+      if (dailyRevenue[dateKey] !== undefined) {
+        dailyRevenue[dateKey] += parseFloat(order.total) || 0;
+        dailyOrders[dateKey] += 1;
+      }
+    });
+
+    users?.forEach(user => {
+      const dateKey = new Date(user.created_at).toISOString().split('T')[0];
+      if (dailyUsers[dateKey] !== undefined) {
+        dailyUsers[dateKey] += 1;
+      }
+    });
+
+    const revenueData = Object.entries(dailyRevenue).map(([date, value]) => ({ date, value }));
+    const ordersData = Object.entries(dailyOrders).map(([date, value]) => ({ date, value }));
+    const usersData = Object.entries(dailyUsers).map(([date, value]) => ({ date, value }));
+
+    const totalRevenue = Object.values(dailyRevenue).reduce((a, b) => a + b, 0);
+    const totalOrders = Object.values(dailyOrders).reduce((a, b) => a + b, 0);
+    const newUsers = users?.filter(u => new Date(u.created_at) >= startDate).length || 0;
+
+    return {
+      revenueData,
+      ordersData,
+      usersData,
+      totalRevenue,
+      totalOrders,
+      newUsers,
+      averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0
+    };
+  },
+
+  async exportOrders(filters = {}) {
+    const orders = await this.getAllOrders(filters);
+    return orders.map(order => ({
+      'Order ID': order.orderNumber || order.id,
+      'Customer': order.user?.name || order.user?.email || 'N/A',
+      'Seller': order.seller?.name || 'N/A',
+      'Total': order.total,
+      'Status': order.status,
+      'Payment': order.paymentStatus,
+      'Date': new Date(order.created_at).toLocaleDateString()
+    }));
+  },
+
+  async exportUsers(filters = {}) {
+    const users = await this.getAllUsers(filters);
+    return users.map(user => ({
+      'Name': user.name || 'N/A',
+      'Email': user.email,
+      'Role': user.role,
+      'Status': user.status || 'active',
+      'Joined': new Date(user.created_at).toLocaleDateString()
+    }));
+  },
+
+  async getWithdrawals(filters = {}) {
+    let query = supabase
+      .from('earnings')
+      .select('*, user:users(name, email)')
+      .order('created_at', { ascending: false });
+
+    if (filters.status) {
+      query = query.eq('status', filters.status);
+    }
+
+    const { data } = await query;
+    return data || [];
+  },
+
+  async processWithdrawal(earningId, status) {
+    const { error } = await supabase
+      .from('earnings')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', earningId);
+    if (error) throw error;
+    return true;
+  },
+
+  async getNotifications(userId = null) {
+    let query = supabase
+      .from('notifications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (userId) {
+      query = query.eq('userId', userId);
+    }
+
+    const { data } = await query;
+    return data || [];
+  },
+
+  async createNotification(notificationData) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert({ ...notificationData, created_at: new Date().toISOString() })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async markNotificationRead(notificationId) {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('id', notificationId);
+    if (error) throw error;
+    return true;
+  },
+
+  async broadcastNotification(title, message, targetRoles = []) {
+    const { data: users } = await supabase
+      .from('users')
+      .select('id')
+      .in('role', targetRoles);
+
+    const notifications = users?.map(user => ({
+      userId: user.id,
+      title,
+      message,
+      type: 'announcement',
+      read: false,
+      created_at: new Date().toISOString()
+    })) || [];
+
+    if (notifications.length > 0) {
+      const { error } = await supabase.from('notifications').insert(notifications);
+      if (error) throw error;
+    }
+
+    return notifications.length;
+  },
+
+  async getLoginHistory(userId, limit = 20) {
+    const { data } = await supabase
+      .from('system_logs')
+      .select('*')
+      .eq('userId', userId)
+      .eq('action', 'login')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    return data || [];
+  },
+
+  async getAllLoginHistory(limit = 100) {
+    const { data } = await supabase
+      .from('system_logs')
+      .select('*, user:users(name, email)')
+      .eq('action', 'login')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    return data || [];
   }
 };
 
