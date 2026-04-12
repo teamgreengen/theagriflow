@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../config/firebase';
+import { OrderService } from '../../services/supabaseService';
 import { useCart } from '../../context/CartContext';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/SupabaseAuthContext';
 import PaymentService from '../../services/paymentService';
 import './Checkout.css';
 
@@ -36,7 +35,7 @@ const Checkout = () => {
     
     const orderData = {
       id: PaymentService.generateReference('ORD'),
-      userId: currentUser?.uid || 'guest',
+      userId: currentUser?.id || 'guest',
       userEmail: formData.email,
       userName: `${formData.firstName} ${formData.lastName}`,
       items: cart.map(item => ({
@@ -65,11 +64,11 @@ const Checkout = () => {
         amount: total
       },
       status: 'pending',
-      createdAt: serverTimestamp()
+      created_at: new Date().toISOString()
     };
 
     try {
-      await addDoc(collection(db, 'orders'), orderData);
+      await OrderService.create(orderData);
       clearCart();
       navigate(`/order-tracking?order=${orderData.id}`);
     } catch (error) {

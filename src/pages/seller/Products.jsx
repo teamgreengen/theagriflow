@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp, getDocs, query, where, deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../config/firebase';
-import { useAuth } from '../../context/AuthContext';
-import ImageService from '../../services/imageService';
+import supabase from '../../config/supabase';
+import { ProductService } from '../../services/supabaseService';
+import { useAuth } from '../../context/SupabaseAuthContext';
+import ImageService from '../../services/supabaseImageService';
 import './Products.css';
 
 const SellerProducts = () => {
@@ -46,12 +46,9 @@ const SellerProducts = () => {
     const fetchProducts = async () => {
       try {
         if (currentUser) {
-          const productsRef = collection(db, 'products');
-          const q = query(productsRef, where('sellerId', '==', currentUser.uid));
-          const snapshot = await getDocs(q);
-          
-          if (!snapshot.empty) {
-            setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+          const data = await ProductService.getBySeller(currentUser.id);
+          if (data.length > 0) {
+            setProducts(data);
           } else {
             setProducts(fallbackProducts);
           }
@@ -104,17 +101,17 @@ const SellerProducts = () => {
         description: newProduct.description,
         unit: newProduct.unit,
         image: imageUrl,
-        sellerId: currentUser?.uid || 'demo',
+        sellerId: currentUser?.id || 'demo',
         sellerName: userData?.storeName || userData?.name || 'Agriflow Seller',
         status: 'active',
         rating: 0,
         reviews: 0,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
       if (currentUser) {
-        await addDoc(collection(db, 'products'), productData);
+        await ProductService.create(productData);
       }
       
       setProducts([...products, { ...productData, id: Date.now().toString() }]);
@@ -143,7 +140,7 @@ const SellerProducts = () => {
     
     try {
       if (currentUser) {
-        await deleteDoc(doc(db, 'products', productId));
+        await ProductService.delete(productId);
       }
       setProducts(products.filter(p => p.id !== productId));
       alert('Product deleted');

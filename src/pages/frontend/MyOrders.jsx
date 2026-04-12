@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { db } from '../../config/firebase';
-import { useAuth } from '../../context/AuthContext';
+import { OrderService } from '../../services/supabaseService';
+import { useAuth } from '../../context/SupabaseAuthContext';
 import './MyOrders.css';
 
 const MyOrders = () => {
@@ -13,7 +12,7 @@ const MyOrders = () => {
   const fallbackOrders = [
     {
       id: 'ORD-001',
-      createdAt: { toDate: () => new Date('2024-01-15') },
+      created_at: '2024-01-15',
       status: 'delivered',
       total: 180,
       items: [
@@ -23,7 +22,7 @@ const MyOrders = () => {
     },
     {
       id: 'ORD-002',
-      createdAt: { toDate: () => new Date('2024-01-20') },
+      created_at: '2024-01-20',
       status: 'shipped',
       total: 95,
       items: [
@@ -33,7 +32,7 @@ const MyOrders = () => {
     },
     {
       id: 'ORD-003',
-      createdAt: { toDate: () => new Date('2024-01-22') },
+      created_at: '2024-01-22',
       status: 'pending',
       total: 45,
       items: [
@@ -51,20 +50,10 @@ const MyOrders = () => {
       }
 
       try {
-        const ordersRef = collection(db, 'orders');
-        const q = query(
-          ordersRef,
-          where('userId', '==', currentUser.uid),
-          orderBy('createdAt', 'desc')
-        );
-        const snapshot = await getDocs(q);
+        const data = await OrderService.getByUser(currentUser.id);
         
-        if (!snapshot.empty) {
-          const fetchedOrders = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          setOrders(fetchedOrders);
+        if (data && data.length > 0) {
+          setOrders(data);
         } else {
           setOrders(fallbackOrders);
         }

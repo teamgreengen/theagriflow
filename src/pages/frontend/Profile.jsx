@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { updateProfile } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../../config/firebase';
-import { useAuth } from '../../context/AuthContext';
+import supabase from '../../config/supabase';
+import { useAuth } from '../../context/SupabaseAuthContext';
 import './Profile.css';
 
 const Profile = () => {

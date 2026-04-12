@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, getDoc } from 'firebase/firestore';
-import { db } from '../../config/firebase';
-import { useAuth } from '../../context/AuthContext';
+import supabase from '../../config/supabase';
+import { useAuth } from '../../context/SupabaseAuthContext';
 import './Chat.css';
 
 const Chat = () => {

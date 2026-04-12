@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
-import { db } from '../../config/firebase';
+import { ProductService } from '../../services/supabaseService';
 import { useCart } from '../../context/CartContext';
 import './Products.css';
 
@@ -45,27 +44,18 @@ const Products = () => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const productsRef = collection(db, 'products');
-        let q;
+        let data;
         
         if (categoryFilter && categoryFilter !== 'all') {
-          q = query(productsRef, where('category', '==', categoryFilter), orderBy('createdAt', 'desc'));
+          data = await ProductService.getByCategory(categoryFilter);
         } else {
-          q = query(productsRef, orderBy('createdAt', 'desc'));
+          data = await ProductService.getAll(50);
         }
         
-        const snapshot = await getDocs(q);
-        
-        if (!snapshot.empty) {
-          const fetchedProducts = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          
+        if (data && data.length > 0) {
           const filtered = searchQuery 
-            ? fetchedProducts.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
-            : fetchedProducts;
-            
+            ? data.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+            : data;
           setProducts(filtered);
         } else {
           const filtered = categoryFilter && categoryFilter !== 'all'
