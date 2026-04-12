@@ -32,7 +32,7 @@ const Login = () => {
         <div className="auth-card">
           <div className="auth-header">
             <Link to="/" className="auth-logo">
-              <img src="/logo-3.png" alt="Agriflow" className="auth-logo-img" />
+              <img src="/logo-2.png" alt="Agriflow" className="auth-logo-img" />
             </Link>
           </div>
           <h2>Welcome Back</h2>

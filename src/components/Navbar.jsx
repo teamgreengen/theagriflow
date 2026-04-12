@@ -39,7 +39,7 @@ const Navbar = () => {
       <div className="nav-main">
         <div className="nav-container">
           <Link to="/" className="nav-logo">
-            <img src="/logo-3.png" alt="Agriflow" className="logo-img" />
+            <img src="/logo-2.png" alt="Agriflow" className="logo-img" />
           </Link>
 
           <form className="nav-search" onSubmit={handleSearch}>
