@@ -1,48 +1,92 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/SupabaseAuthContext';
+import SuperAdminService from '../../services/superAdminService';
 import './Settings.css';
 
 const SuperAdminSettings = () => {
+  const { currentUser } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [activeTab, setActiveTab] = useState('general');
   const [settings, setSettings] = useState({
-    platformName: 'Agriflow',
-    tagline: "Ghana's Agricultural Marketplace",
-    contactEmail: 'support@agriflow.com',
-    contactPhone: '+233 24 123 4567',
-    address: 'Accra, Ghana',
-    logo: '',
-    favicon: '',
-    themePrimaryColor: '#2d5a27',
-    themeSecondaryColor: '#4a7c43',
-    themeAccentColor: '#ff9f00',
-    commissionRate: 10,
-    minWithdrawal: 50,
-    deliveryFee: 15,
-    freeDeliveryThreshold: 100,
-    deliveryFeeType: 'flat',
-    facebook: 'https://facebook.com/agriflow',
-    twitter: 'https://twitter.com/agriflow',
-    instagram: 'https://instagram.com/agriflow',
-    whatsapp: '+233241234567',
-    maintenanceMode: false,
-    registrationEnabled: true,
-    sellerApprovalRequired: true
+    platform: { name: 'Agriflow', tagline: "Ghana's Agricultural Marketplace" },
+    commission: { rate: 10, minWithdrawal: 50 },
+    delivery: { fee: 15, freeThreshold: 100, type: 'flat' },
+    contact: { email: 'support@agriflow.com', phone: '+233241234567', address: 'Accra, Ghana' },
+    social: { facebook: '', twitter: '', instagram: '', whatsapp: '' },
+    features: { maintenanceMode: false, registrationEnabled: true, sellerApprovalRequired: true }
   });
 
-  const [activeTab, setActiveTab] = useState('general');
-  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    loadSettings();
+  }, []);
 
-  const handleSave = () => {
-    localStorage.setItem('siteSettings', JSON.stringify(settings));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const loadSettings = async () => {
+    try {
+      setLoading(true);
+      const data = await SuperAdminService.getSettings();
+      if (Object.keys(data).length > 0) {
+        setSettings(prev => ({ ...prev, ...data }));
+      }
+    } catch (err) {
+      console.error('Failed to load settings:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleChange = (field, value) => {
-    setSettings({ ...settings, [field]: value });
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const settingsArray = [
+        { id: 'platform', value: settings.platform, category: 'general' },
+        { id: 'commission', value: settings.commission, category: 'business' },
+        { id: 'delivery', value: settings.delivery, category: 'business' },
+        { id: 'contact', value: settings.contact, category: 'contact' },
+        { id: 'social', value: settings.social, category: 'contact' },
+        { id: 'features', value: settings.features, category: 'general' }
+      ];
+      
+      await SuperAdminService.saveMultipleSettings(settingsArray);
+      await SuperAdminService.logAction(currentUser?.id, 'update_settings', 'settings', null, { categories: settingsArray.map(s => s.id) });
+      
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error('Failed to save settings:', err);
+      alert('Failed to save settings: ' + err.message);
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const handleChange = (category, field, value) => {
+    setSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [field]: value
+      }
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="settings-page">
+        <div className="loading">Loading settings...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="settings-page">
-      <h1>Site Settings</h1>
+      <div className="page-header">
+        <div>
+          <h1>Platform Settings</h1>
+          <p>Configure your platform preferences</p>
+        </div>
+      </div>
       
       {saved && <div className="save-notification">Settings saved successfully!</div>}
       
@@ -50,20 +94,17 @@ const SuperAdminSettings = () => {
         <button className={`tab-btn ${activeTab === 'general' ? 'active' : ''}`} onClick={() => setActiveTab('general')}>
           ⚙️ General
         </button>
-        <button className={`tab-btn ${activeTab === 'appearance' ? 'active' : ''}`} onClick={() => setActiveTab('appearance')}>
-          🎨 Appearance
+        <button className={`tab-btn ${activeTab === 'business' ? 'active' : ''}`} onClick={() => setActiveTab('business')}>
+          💰 Business
+        </button>
+        <button className={`tab-btn ${activeTab === 'delivery' ? 'active' : ''}`} onClick={() => setActiveTab('delivery')}>
+          🚚 Delivery
         </button>
         <button className={`tab-btn ${activeTab === 'contact' ? 'active' : ''}`} onClick={() => setActiveTab('contact')}>
           📞 Contact
         </button>
         <button className={`tab-btn ${activeTab === 'social' ? 'active' : ''}`} onClick={() => setActiveTab('social')}>
-          🔗 Social Media
-        </button>
-        <button className={`tab-btn ${activeTab === 'commission' ? 'active' : ''}`} onClick={() => setActiveTab('commission')}>
-          💰 Commission
-        </button>
-        <button className={`tab-btn ${activeTab === 'delivery' ? 'active' : ''}`} onClick={() => setActiveTab('delivery')}>
-          🚚 Delivery
+          🔗 Social
         </button>
       </div>
 
@@ -73,39 +114,51 @@ const SuperAdminSettings = () => {
           <div className="settings-grid">
             <div className="form-group">
               <label>Platform Name</label>
-              <input type="text" value={settings.platformName} onChange={(e) => handleChange('platformName', e.target.value)} />
+              <input 
+                type="text" 
+                value={settings.platform?.name || ''} 
+                onChange={(e) => handleChange('platform', 'name', e.target.value)} 
+              />
             </div>
             <div className="form-group">
               <label>Tagline</label>
-              <input type="text" value={settings.tagline} onChange={(e) => handleChange('tagline', e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label>Logo URL</label>
-              <input type="text" value={settings.logo} onChange={(e) => handleChange('logo', e.target.value)} placeholder="https://example.com/logo.png" />
-            </div>
-            <div className="form-group">
-              <label>Favicon URL</label>
-              <input type="text" value={settings.favicon} onChange={(e) => handleChange('favicon', e.target.value)} placeholder="https://example.com/favicon.ico" />
+              <input 
+                type="text" 
+                value={settings.platform?.tagline || ''} 
+                onChange={(e) => handleChange('platform', 'tagline', e.target.value)} 
+              />
             </div>
           </div>
 
           <h3>Platform Features</h3>
           <div className="toggle-group">
             <label className="toggle-label">
-              <input type="checkbox" checked={settings.maintenanceMode} onChange={(e) => handleChange('maintenanceMode', e.target.checked)} />
+              <input 
+                type="checkbox" 
+                checked={settings.features?.maintenanceMode || false} 
+                onChange={(e) => handleChange('features', 'maintenanceMode', e.target.checked)} 
+              />
               <span>Maintenance Mode</span>
             </label>
             <p className="form-help">When enabled, only admins can access the site</p>
           </div>
           <div className="toggle-group">
             <label className="toggle-label">
-              <input type="checkbox" checked={settings.registrationEnabled} onChange={(e) => handleChange('registrationEnabled', e.target.checked)} />
+              <input 
+                type="checkbox" 
+                checked={settings.features?.registrationEnabled ?? true} 
+                onChange={(e) => handleChange('features', 'registrationEnabled', e.target.checked)} 
+              />
               <span>Allow New Registrations</span>
             </label>
           </div>
           <div className="toggle-group">
             <label className="toggle-label">
-              <input type="checkbox" checked={settings.sellerApprovalRequired} onChange={(e) => handleChange('sellerApprovalRequired', e.target.checked)} />
+              <input 
+                type="checkbox" 
+                checked={settings.features?.sellerApprovalRequired ?? true} 
+                onChange={(e) => handleChange('features', 'sellerApprovalRequired', e.target.checked)} 
+              />
               <span>Require Seller Approval</span>
             </label>
             <p className="form-help">New sellers need admin approval before they can sell</p>
@@ -113,109 +166,30 @@ const SuperAdminSettings = () => {
         </div>
       )}
 
-      {activeTab === 'appearance' && (
+      {activeTab === 'business' && (
         <div className="settings-section">
-          <h2>Theme Colors</h2>
-          <p className="section-desc">Customize the look and feel of your platform</p>
-          <div className="color-settings">
-            <div className="form-group">
-              <label>Primary Color</label>
-              <div className="color-input">
-                <input type="color" value={settings.themePrimaryColor} onChange={(e) => handleChange('themePrimaryColor', e.target.value)} />
-                <input type="text" value={settings.themePrimaryColor} onChange={(e) => handleChange('themePrimaryColor', e.target.value)} />
-              </div>
-              <p className="form-help">Used for headers, buttons, and main accents</p>
-            </div>
-            <div className="form-group">
-              <label>Secondary Color</label>
-              <div className="color-input">
-                <input type="color" value={settings.themeSecondaryColor} onChange={(e) => handleChange('themeSecondaryColor', e.target.value)} />
-                <input type="text" value={settings.themeSecondaryColor} onChange={(e) => handleChange('themeSecondaryColor', e.target.value)} />
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Accent Color (Orange)</label>
-              <div className="color-input">
-                <input type="color" value={settings.themeAccentColor} onChange={(e) => handleChange('themeAccentColor', e.target.value)} />
-                <input type="text" value={settings.themeAccentColor} onChange={(e) => handleChange('themeAccentColor', e.target.value)} />
-              </div>
-              <p className="form-help">Used for call-to-action buttons and highlights</p>
-            </div>
-          </div>
-
-          <div className="theme-preview">
-            <h3>Preview</h3>
-            <div className="preview-box" style={{ background: settings.themePrimaryColor }}>
-              <span style={{ color: settings.themeAccentColor }}>Primary</span>
-            </div>
-            <div className="preview-box" style={{ background: settings.themeSecondaryColor }}>
-              <span>Secondary</span>
-            </div>
-            <div className="preview-box" style={{ background: settings.themeAccentColor, color: '#000' }}>
-              <span>Accent</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'contact' && (
-        <div className="settings-section">
-          <h2>Contact Information</h2>
-          <div className="settings-grid">
-            <div className="form-group">
-              <label>Contact Email</label>
-              <input type="email" value={settings.contactEmail} onChange={(e) => handleChange('contactEmail', e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label>Contact Phone</label>
-              <input type="tel" value={settings.contactPhone} onChange={(e) => handleChange('contactPhone', e.target.value)} />
-            </div>
-            <div className="form-group full-width">
-              <label>Business Address</label>
-              <textarea value={settings.address} onChange={(e) => handleChange('address', e.target.value)} rows="3"></textarea>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'social' && (
-        <div className="settings-section">
-          <h2>Social Media Links</h2>
-          <div className="settings-grid">
-            <div className="form-group">
-              <label>Facebook</label>
-              <input type="url" value={settings.facebook} onChange={(e) => handleChange('facebook', e.target.value)} placeholder="https://facebook.com/..." />
-            </div>
-            <div className="form-group">
-              <label>Twitter / X</label>
-              <input type="url" value={settings.twitter} onChange={(e) => handleChange('twitter', e.target.value)} placeholder="https://twitter.com/..." />
-            </div>
-            <div className="form-group">
-              <label>Instagram</label>
-              <input type="url" value={settings.instagram} onChange={(e) => handleChange('instagram', e.target.value)} placeholder="https://instagram.com/..." />
-            </div>
-            <div className="form-group">
-              <label>WhatsApp</label>
-              <input type="text" value={settings.whatsapp} onChange={(e) => handleChange('whatsapp', e.target.value)} placeholder="+233..." />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'commission' && (
-        <div className="settings-section">
-          <h2>Commission Settings</h2>
+          <h2>Commission & Payouts</h2>
           <div className="form-group">
             <label>Platform Commission Rate (%)</label>
             <div className="input-with-suffix">
-              <input type="number" value={settings.commissionRate} onChange={(e) => handleChange('commissionRate', e.target.value)} min="0" max="100" />
+              <input 
+                type="number" 
+                value={settings.commission?.rate || 0} 
+                onChange={(e) => handleChange('commission', 'rate', parseFloat(e.target.value))} 
+                min="0" 
+                max="100" 
+              />
               <span className="suffix">%</span>
             </div>
             <p className="form-help">Deducted from each sale. E.g., GH₵100 sale with 10% commission = GH₵90 to seller</p>
           </div>
           <div className="form-group">
             <label>Minimum Withdrawal (GH₵)</label>
-            <input type="number" value={settings.minWithdrawal} onChange={(e) => handleChange('minWithdrawal', e.target.value)} />
+            <input 
+              type="number" 
+              value={settings.commission?.minWithdrawal || 0} 
+              onChange={(e) => handleChange('commission', 'minWithdrawal', parseFloat(e.target.value))} 
+            />
             <p className="form-help">Sellers must have at least this amount to request withdrawal</p>
           </div>
         </div>
@@ -226,27 +200,38 @@ const SuperAdminSettings = () => {
           <h2>Delivery Settings</h2>
           <div className="form-group">
             <label>Delivery Fee Type</label>
-            <select value={settings.deliveryFeeType} onChange={(e) => handleChange('deliveryFeeType', e.target.value)}>
+            <select 
+              value={settings.delivery?.type || 'flat'} 
+              onChange={(e) => handleChange('delivery', 'type', e.target.value)}
+            >
               <option value="flat">Flat Rate</option>
               <option value="tiered">Tiered (Based on order value)</option>
             </select>
           </div>
 
-          {settings.deliveryFeeType === 'flat' && (
+          {settings.delivery?.type === 'flat' && (
             <>
               <div className="form-group">
                 <label>Standard Delivery Fee (GH₵)</label>
-                <input type="number" value={settings.deliveryFee} onChange={(e) => handleChange('deliveryFee', e.target.value)} />
+                <input 
+                  type="number" 
+                  value={settings.delivery?.fee || 0} 
+                  onChange={(e) => handleChange('delivery', 'fee', parseFloat(e.target.value))} 
+                />
               </div>
               <div className="form-group">
                 <label>Free Delivery Minimum (GH₵)</label>
-                <input type="number" value={settings.freeDeliveryThreshold} onChange={(e) => handleChange('freeDeliveryThreshold', e.target.value)} />
+                <input 
+                  type="number" 
+                  value={settings.delivery?.freeThreshold || 0} 
+                  onChange={(e) => handleChange('delivery', 'freeThreshold', parseFloat(e.target.value))} 
+                />
                 <p className="form-help">Orders above this amount get free delivery</p>
               </div>
             </>
           )}
 
-          {settings.deliveryFeeType === 'tiered' && (
+          {settings.delivery?.type === 'tiered' && (
             <div className="tier-info">
               <p>Tiered pricing is based on order value:</p>
               <ul>
@@ -259,8 +244,86 @@ const SuperAdminSettings = () => {
         </div>
       )}
 
+      {activeTab === 'contact' && (
+        <div className="settings-section">
+          <h2>Contact Information</h2>
+          <div className="settings-grid">
+            <div className="form-group">
+              <label>Contact Email</label>
+              <input 
+                type="email" 
+                value={settings.contact?.email || ''} 
+                onChange={(e) => handleChange('contact', 'email', e.target.value)} 
+              />
+            </div>
+            <div className="form-group">
+              <label>Contact Phone</label>
+              <input 
+                type="tel" 
+                value={settings.contact?.phone || ''} 
+                onChange={(e) => handleChange('contact', 'phone', e.target.value)} 
+              />
+            </div>
+            <div className="form-group full-width">
+              <label>Business Address</label>
+              <textarea 
+                value={settings.contact?.address || ''} 
+                onChange={(e) => handleChange('contact', 'address', e.target.value)} 
+                rows="3"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'social' && (
+        <div className="settings-section">
+          <h2>Social Media Links</h2>
+          <div className="settings-grid">
+            <div className="form-group">
+              <label>Facebook</label>
+              <input 
+                type="url" 
+                value={settings.social?.facebook || ''} 
+                onChange={(e) => handleChange('social', 'facebook', e.target.value)} 
+                placeholder="https://facebook.com/..."
+              />
+            </div>
+            <div className="form-group">
+              <label>Twitter / X</label>
+              <input 
+                type="url" 
+                value={settings.social?.twitter || ''} 
+                onChange={(e) => handleChange('social', 'twitter', e.target.value)} 
+                placeholder="https://twitter.com/..."
+              />
+            </div>
+            <div className="form-group">
+              <label>Instagram</label>
+              <input 
+                type="url" 
+                value={settings.social?.instagram || ''} 
+                onChange={(e) => handleChange('social', 'instagram', e.target.value)} 
+                placeholder="https://instagram.com/..."
+              />
+            </div>
+            <div className="form-group">
+              <label>WhatsApp</label>
+              <input 
+                type="text" 
+                value={settings.social?.whatsapp || ''} 
+                onChange={(e) => handleChange('social', 'whatsapp', e.target.value)} 
+                placeholder="+233..."
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="settings-actions">
-        <button className="save-btn" onClick={handleSave}>Save All Settings</button>
+        <button className="save-btn" onClick={handleSave} disabled={saving}>
+          {saving ? 'Saving...' : 'Save All Settings'}
+        </button>
       </div>
     </div>
   );

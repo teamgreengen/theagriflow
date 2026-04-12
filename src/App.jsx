@@ -36,6 +36,7 @@ import AdminBanners from './pages/admin/Banners';
 
 import SuperAdminDashboard from './pages/superadmin/Dashboard';
 import SuperAdminAdmins from './pages/superadmin/Admins';
+import SuperAdminUsers from './pages/superadmin/Users';
 import SuperAdminSettings from './pages/superadmin/Settings';
 
 import RiderDashboard from './pages/rider/Dashboard';
@@ -144,6 +145,8 @@ function App() {
                       <Routes>
                         <Route index element={<SuperAdminDashboard />} />
                         <Route path="admins" element={<SuperAdminAdmins />} />
+                        <Route path="users" element={<SuperAdminUsers />} />
+                        <Route path="sellers" element={<SuperAdminUsers />} />
                         <Route path="settings" element={<SuperAdminSettings />} />
                       </Routes>
                     </SuperAdminLayout>
