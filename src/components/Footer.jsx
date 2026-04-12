@@ -7,15 +7,13 @@ const Footer = () => {
       <div className="footer-container">
         <div className="footer-section">
           <div className="footer-logo">
-            <span className="logo-icon">🌾</span>
-            <span className="logo-text">Agriflow</span>
+            <img src="/logo-3.png" alt="Agriflow" />
           </div>
-          <p>Ghana's premier agricultural marketplace. Connecting farmers, traders, and buyers across the country.</p>
+          <p>Ghana's premier agricultural marketplace.</p>
           <div className="social-links">
             <a href="#">Facebook</a>
             <a href="#">Twitter</a>
             <a href="#">Instagram</a>
-            <a href="#">WhatsApp</a>
           </div>
         </div>
 

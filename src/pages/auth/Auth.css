@@ -32,6 +32,11 @@
   align-items: baseline;
 }
 
+.auth-logo-img {
+  height: 40px;
+  width: auto;
+}
+
 .auth-logo .logo-text {
   font-size: 28px;
   font-weight: 800;

@@ -39,9 +39,7 @@ const Navbar = () => {
       <div className="nav-main">
         <div className="nav-container">
           <Link to="/" className="nav-logo">
-            <span className="logo-icon">🌾</span>
-            <span className="logo-text">agri</span>
-            <span className="logo-highlight">flow</span>
+            <img src="/logo-3.png" alt="Agriflow" className="logo-img" />
           </Link>
 
           <form className="nav-search" onSubmit={handleSearch}>

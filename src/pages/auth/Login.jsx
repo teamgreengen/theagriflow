@@ -32,8 +32,7 @@ const Login = () => {
         <div className="auth-card">
           <div className="auth-header">
             <Link to="/" className="auth-logo">
-              <span className="logo-text">agri</span>
-              <span className="logo-highlight">flow</span>
+              <img src="/logo-3.png" alt="Agriflow" className="auth-logo-img" />
             </Link>
           </div>
           <h2>Welcome Back</h2>

@@ -1,5 +1,42 @@
 import supabase from '../config/supabase';
 
+const BUCKET_NAME = 'images';
+
+const ensureBucketExists = async () => {
+  const { data: buckets } = await supabase.storage.listBuckets();
+  const bucketExists = buckets?.some(b => b.name === BUCKET_NAME);
+  
+  if (!bucketExists) {
+    const { error } = await supabase.storage.createBucket(BUCKET_NAME, {
+      public: true,
+      fileSizeLimit: 5242880
+    });
+    if (error && !error.message.includes('already exists')) {
+      console.warn('Bucket creation note:', error.message);
+    }
+  }
+  
+  await ensurePoliciesExist();
+};
+
+const ensurePoliciesExist = async () => {
+  const { data: policies } = await supabase
+    .from('pg_policies')
+    .select('polname')
+    .eq('schemaname', 'storage')
+    .eq('tablename', 'objects');
+  
+  const policyNames = policies?.map(p => p.polname) || [];
+  
+  if (!policyNames.includes('Public can read images')) {
+    await supabase.rpc('create_storage_policy', { 
+      bucket_name: BUCKET_NAME,
+      policy_name: 'Public can read images',
+      policy_type: 'SELECT'
+    }).catch(() => {});
+  }
+};
+
 export const ImageService = {
   async uploadImage(file, folder = 'products') {
     if (!file) return null;
@@ -14,18 +51,26 @@ export const ImageService = {
       throw new Error('File too large. Maximum size is 5MB.');
     }
 
+    await ensureBucketExists();
+
     const timestamp = Date.now();
     const fileName = `${timestamp}_${file.name.replace(/\s+/g, '_')}`;
     const filePath = `${folder}/${fileName}`;
 
     const { data, error } = await supabase.storage
-      .from('images')
-      .upload(filePath, file);
+      .from(BUCKET_NAME)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Upload error:', error);
+      throw new Error(`Upload failed: ${error.message}`);
+    }
 
     const { data: { publicUrl } } = supabase.storage
-      .from('images')
+      .from(BUCKET_NAME)
       .getPublicUrl(filePath);
 
     return publicUrl;
@@ -44,7 +89,7 @@ export const ImageService = {
       const fileName = urlParts.slice(-2).join('/');
       
       const { error } = await supabase.storage
-        .from('images')
+        .from(BUCKET_NAME)
         .remove([fileName]);
       
       if (error) throw error;
