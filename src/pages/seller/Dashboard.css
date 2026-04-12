@@ -219,3 +219,13 @@
     grid-template-columns: 1fr;
   }
 }
+
+.available-deliveries { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-top: 30px; }
+.available-deliveries h2 { font-size: 20px; margin-bottom: 20px; }
+.delivery-list { display: flex; flex-direction: column; gap: 15px; }
+.delivery-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+.delivery-info h4 { font-size: 16px; margin-bottom: 10px; color: #2563eb; }
+.delivery-info p { color: #64748b; font-size: 14px; margin: 5px 0; }
+.delivery-action { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.delivery-action .amount { font-size: 20px; font-weight: 700; color: #16a34a; }
+.accept-btn { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }

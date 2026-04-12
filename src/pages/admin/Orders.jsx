@@ -1,41 +1,129 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../context/SupabaseAuthContext';
+import AdminService from '../../services/adminService';
+import './Orders.css';
 
 const AdminOrders = () => {
-  const [orders] = useState([
-    { id: 'ORD-001', buyer: 'John Doe', seller: 'Green Farm', amount: 150, status: 'delivered', date: '2026-04-03' },
-    { id: 'ORD-002', buyer: 'Mary Smith', seller: 'Tropical Fruits', amount: 200, status: 'processing', date: '2026-04-02' },
-    { id: 'ORD-003', buyer: 'Peter Jones', seller: 'Local Farmers', amount: 75, status: 'pending', date: '2026-04-01' }
-  ]);
+  const { currentUser } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('');
+
+  useEffect(() => {
+    loadOrders();
+  }, [filter]);
+
+  const loadOrders = async () => {
+    try {
+      setLoading(true);
+      const filters = {};
+      if (filter) filters.status = filter;
+      const data = await AdminService.getAllOrders(filters);
+      setOrders(data || []);
+    } catch (err) {
+      console.error('Failed to load orders:', err);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (orderId, status) => {
+    try {
+      await AdminService.updateOrderStatus(orderId, status);
+      await AdminService.logAction(currentUser?.id, 'update_order_status', 'orders', orderId, { status });
+      loadOrders();
+    } catch (err) {
+      alert('Failed to update: ' + err.message);
+    }
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' }).format(amount || 0);
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    return new Date(dateStr).toLocaleDateString('en-GB', {
+      day: 'numeric', month: 'short', year: 'numeric'
+    });
+  };
+
+  const getStatusClass = (status) => {
+    const classes = {
+      pending: 'pending',
+      processing: 'processing',
+      shipped: 'shipped',
+      delivered: 'delivered',
+      cancelled: 'cancelled'
+    };
+    return classes[status] || 'pending';
+  };
 
   return (
     <div className="orders-page">
-      <h1>All Orders</h1>
-      
-      <div className="orders-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Buyer</th>
-              <th>Seller</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map(order => (
-              <tr key={order.id}>
-                <td>{order.id}</td>
-                <td>{order.buyer}</td>
-                <td>{order.seller}</td>
-                <td>GH₵ {order.amount}</td>
-                <td><span className={`status ${order.status}`}>{order.status}</span></td>
-                <td>{order.date}</td>
+      <div className="page-header">
+        <h1>All Orders</h1>
+      </div>
+
+      <div className="filters-bar">
+        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="processing">Processing</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div className="orders-table-wrapper">
+        {loading ? (
+          <div className="loading">Loading orders...</div>
+        ) : orders.length === 0 ? (
+          <div className="empty-state"><p>No orders found</p></div>
+        ) : (
+          <table className="orders-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Seller</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {orders.map(order => (
+                <tr key={order.id}>
+                  <td className="order-id">{order.orderNumber || order.id.slice(0, 8)}</td>
+                  <td>{order.user?.name || order.user?.email || 'N/A'}</td>
+                  <td>{order.seller?.name || 'N/A'}</td>
+                  <td className="amount">{formatCurrency(order.total)}</td>
+                  <td>
+                    <select 
+                      value={order.status} 
+                      onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                      className={`status-select ${getStatusClass(order.status)}`}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="processing">Processing</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </td>
+                  <td>{formatDate(order.created_at)}</td>
+                  <td>
+                    <button className="view-btn">View</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

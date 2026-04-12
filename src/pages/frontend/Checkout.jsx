@@ -4,6 +4,7 @@ import { OrderService } from '../../services/supabaseService';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import PaymentService from '../../services/paymentService';
+import DeliveryService from '../../services/deliveryService';
 import './Checkout.css';
 
 const Checkout = () => {
@@ -68,9 +69,16 @@ const Checkout = () => {
     };
 
     try {
-      await OrderService.create(orderData);
+      const orderId = await OrderService.create(orderData);
+      
+      await DeliveryService.createFromOrder(orderId, {
+        ...orderData,
+        sellerId: cart[0]?.sellerId || null,
+        sellerAddress: 'Seller Location'
+      });
+      
       clearCart();
-      navigate(`/order-tracking?order=${orderData.id}`);
+      navigate(`/order-tracking?order=${orderId}`);
     } catch (error) {
       console.error('Order save error:', error);
       alert('Payment successful but order save failed. Contact support.');

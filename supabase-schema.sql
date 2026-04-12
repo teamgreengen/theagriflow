@@ -186,6 +186,66 @@ CREATE TABLE IF NOT EXISTS platform_stats (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 14. Deliveries Table (for rider delivery tracking)
+CREATE TABLE IF NOT EXISTS deliveries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  orderId UUID REFERENCES orders(id),
+  sellerId UUID REFERENCES users(id),
+  riderId UUID REFERENCES users(id),
+  userId UUID REFERENCES users(id),
+  pickupAddress TEXT,
+  deliveryAddress TEXT,
+  deliveryPhone TEXT,
+  fee DECIMAL(10,2) DEFAULT 15,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 15. Addresses Table (for buyer saved addresses)
+CREATE TABLE IF NOT EXISTS addresses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  userId UUID REFERENCES users(id),
+  label TEXT DEFAULT 'Home',
+  street TEXT,
+  city TEXT,
+  region TEXT,
+  phone TEXT,
+  isDefault BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 16. Wishlist Table
+CREATE TABLE IF NOT EXISTS wishlist (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  userId UUID REFERENCES users(id),
+  productId UUID REFERENCES products(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(userId, productId)
+);
+
+-- 17. Withdrawals Table
+CREATE TABLE IF NOT EXISTS withdrawals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sellerId UUID REFERENCES users(id),
+  amount DECIMAL(10,2) NOT NULL,
+  status TEXT DEFAULT 'pending',
+  method TEXT,
+  accountDetails TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 18. Rider Withdrawals Table
+CREATE TABLE IF NOT EXISTS rider_withdrawals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  riderId UUID REFERENCES users(id),
+  amount DECIMAL(10,2) NOT NULL,
+  status TEXT DEFAULT 'pending',
+  method TEXT,
+  accountDetails TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Enable Row Level Security
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;

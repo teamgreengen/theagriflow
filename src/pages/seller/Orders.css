@@ -1,0 +1,19 @@
+.orders-page { max-width: 1200px; margin: 0 auto; padding: 30px; }
+.orders-page .page-header { margin-bottom: 30px; }
+.orders-page .page-header h1 { font-size: 28px; }
+
+.orders-filters { margin-bottom: 25px; }
+.orders-filters select { padding: 10px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; }
+
+.orders-table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; }
+.orders-table th { background: #f8fafc; padding: 15px; text-align: left; font-weight: 600; font-size: 13px; color: #64748b; text-transform: uppercase; }
+.orders-table td { padding: 15px; border-top: 1px solid #e5e7eb; }
+.orders-table tr:hover { background: #f8fafc; }
+
+.order-id { font-weight: 600; color: #2563eb; }
+.order-amount { font-weight: 600; }
+
+.accept-btn { padding: 8px 16px; background: #dcfce7; color: #16a34a; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+.complete-btn { padding: 8px 16px; background: #dbeafe; color: #2563eb; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+.empty-state, .loading { text-align: center; padding: 60px 20px; color: #64748b; }

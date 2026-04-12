@@ -1,87 +1,154 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import supabase from '../../config/supabase';
+import DeliveryService from '../../services/deliveryService';
 import './OrderTracking.css';
 
 const OrderTracking = () => {
-  const navigate = useNavigate();
-  const [orderId, setOrderId] = useState('');
-  const [orders] = useState([
-    {
-      id: 'ORD-2024-001',
-      date: '2024-01-15',
-      status: 'delivered',
-      items: [
-        { name: 'Fresh Tomatoes', quantity: 2, price: 50 },
-        { name: 'Organic Maize', quantity: 1, price: 80 }
-      ],
-      total: 180,
-      deliveryFee: 15,
-      tracking: [
-        { status: 'Order Placed', date: '2024-01-15 10:30', completed: true },
-        { status: 'Payment Confirmed', date: '2024-01-15 10:35', completed: true },
-        { status: 'Seller Processing', date: '2024-01-15 11:00', completed: true },
-        { status: 'Out for Delivery', date: '2024-01-16 08:00', completed: true },
-        { status: 'Delivered', date: '2024-01-16 14:30', completed: true }
-      ]
-    },
-    {
-      id: 'ORD-2024-002',
-      date: '2024-01-18',
-      status: 'in_transit',
-      items: [
-        { name: 'Cassava', quantity: 5, price: 25 }
-      ],
-      total: 125,
-      deliveryFee: 20,
-      tracking: [
-        { status: 'Order Placed', date: '2024-01-18 09:00', completed: true },
-        { status: 'Payment Confirmed', date: '2024-01-18 09:10', completed: true },
-        { status: 'Seller Processing', date: '2024-01-18 10:00', completed: true },
-        { status: 'Out for Delivery', date: '2024-01-19 07:00', completed: true },
-        { status: 'Delivered', date: '', completed: false }
-      ]
-    },
-    {
-      id: 'ORD-2024-003',
-      date: '2024-01-20',
-      status: 'pending',
-      items: [
-        { name: 'Yam', quantity: 3, price: 60 },
-        { name: 'Plantain', quantity: 2, price: 40 }
-      ],
-      total: 260,
-      deliveryFee: 18,
-      tracking: [
-        { status: 'Order Placed', date: '2024-01-20 14:00', completed: true },
-        { status: 'Payment Confirmed', date: '', completed: false },
-        { status: 'Seller Processing', date: '', completed: false },
-        { status: 'Out for Delivery', date: '', completed: false },
-        { status: 'Delivered', date: '', completed: false }
-      ]
+  const [searchParams] = useSearchParams();
+  const orderParam = searchParams.get('order');
+  const [orderId, setOrderId] = useState(orderParam || '');
+  const [order, setOrder] = useState(null);
+  const [delivery, setDelivery] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (orderParam) {
+      setOrderId(orderParam);
+      trackOrder(orderParam);
+    } else {
+      setLoading(false);
     }
-  ]);
+  }, [orderParam]);
+
+  const trackOrder = async (id) => {
+    if (!id) return;
+    
+    try {
+      setLoading(true);
+      setError('');
+      
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (orderError) throw orderError;
+      setOrder(orderData);
+
+      const deliveryData = await DeliveryService.getByOrder(id);
+      setDelivery(deliveryData);
+      
+    } catch (err) {
+      console.error('Order not found:', err);
+      setError('Order not found. Please check the order ID.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTrack = (e) => {
+    e.preventDefault();
+    trackOrder(orderId);
+  };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'delivered': return '#22c55e';
-      case 'in_transit': return '#f59e0b';
-      case 'pending': return '#6b7280';
-      case 'cancelled': return '#ef4444';
-      default: return '#6b7280';
-    }
+    const colors = {
+      pending: '#f59e0b',
+      processing: '#3b82f6',
+      shipped: '#8b5cf6',
+      delivered: '#22c55e',
+      cancelled: '#ef4444'
+    };
+    return colors[status] || '#6b7280';
   };
 
   const getStatusLabel = (status) => {
-    switch (status) {
-      case 'delivered': return 'Delivered';
-      case 'in_transit': return 'In Transit';
-      case 'pending': return 'Pending';
-      case 'cancelled': return 'Cancelled';
-      default: return status;
-    }
+    const labels = {
+      pending: 'Pending',
+      processing: 'Processing',
+      shipped: 'Shipped',
+      delivered: 'Delivered',
+      cancelled: 'Cancelled'
+    };
+    return labels[status] || status;
   };
 
-  const selectedOrder = orders.find(o => o.id === orderId) || orders[0];
+  const getDeliveryStatusColor = (status) => {
+    const colors = {
+      pending: '#f59e0b',
+      accepted: '#3b82f6',
+      picked_up: '#8b5cf6',
+      in_transit: '#06b6d4',
+      delivered: '#22c55e',
+      cancelled: '#ef4444'
+    };
+    return colors[status] || '#6b7280';
+  };
+
+  const getDeliveryStatusLabel = (status) => {
+    const labels = {
+      pending: 'Waiting for Rider',
+      accepted: 'Rider Assigned',
+      picked_up: 'Picked Up',
+      in_transit: 'In Transit',
+      delivered: 'Delivered',
+      cancelled: 'Cancelled'
+    };
+    return labels[status] || status;
+  };
+
+  const getTrackingSteps = (status) => {
+    const steps = [
+      { status: 'pending', label: 'Order Placed', icon: '📦' },
+      { status: 'processing', label: 'Seller Processing', icon: '📋' },
+      { status: 'shipped', label: 'Shipped', icon: '🚚' },
+      { status: 'delivered', label: 'Delivered', icon: '✅' }
+    ];
+
+    const statusOrder = ['pending', 'processing', 'shipped', 'delivered'];
+    const currentIndex = statusOrder.indexOf(status);
+
+    return steps.map((step, index) => ({
+      ...step,
+      completed: index <= currentIndex
+    }));
+  };
+
+  const getDeliveryTimeline = (status) => {
+    const steps = [
+      { status: 'pending', label: 'Order Placed', icon: '📦' },
+      { status: 'accepted', label: 'Rider Assigned', icon: '👤' },
+      { status: 'picked_up', label: 'Picked Up', icon: '📍' },
+      { status: 'in_transit', label: 'In Transit', icon: '🚚' },
+      { status: 'delivered', label: 'Delivered', icon: '✅' }
+    ];
+
+    const statusOrder = ['pending', 'accepted', 'picked_up', 'in_transit', 'delivered'];
+    const currentIndex = statusOrder.indexOf(status);
+
+    return steps.map((step, index) => ({
+      ...step,
+      completed: index <= currentIndex
+    }));
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  if (loading) {
+    return (
+      <div className="order-tracking-page">
+        <div className="container">
+          <div className="loading">Loading order...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="order-tracking-page">
@@ -89,83 +156,151 @@ const OrderTracking = () => {
         <h1>Track Your Order</h1>
         
         <div className="order-search">
-          <input
-            type="text"
-            placeholder="Enter Order ID"
-            value={orderId}
-            onChange={(e) => setOrderId(e.target.value)}
-          />
-          <button>Track</button>
+          <form onSubmit={handleTrack}>
+            <input
+              type="text"
+              placeholder="Enter Order ID"
+              value={orderId}
+              onChange={(e) => setOrderId(e.target.value)}
+            />
+            <button type="submit">Track</button>
+          </form>
         </div>
 
-        <div className="order-details">
-          <div className="order-header">
-            <div>
-              <span className="order-id">Order #{selectedOrder.id}</span>
-              <span className="order-date">Placed on {selectedOrder.date}</span>
-            </div>
-            <span 
-              className="order-status"
-              style={{ backgroundColor: getStatusColor(selectedOrder.status) }}
-            >
-              {getStatusLabel(selectedOrder.status)}
-            </span>
+        {error && (
+          <div className="error-message">
+            <p>{error}</p>
           </div>
+        )}
 
-          <div className="tracking-timeline">
-            {selectedOrder.tracking.map((step, index) => (
-              <div key={index} className={`timeline-step ${step.completed ? 'completed' : ''}`}>
-                <div className="timeline-dot">
-                  {step.completed && <span>✓</span>}
-                </div>
-                <div className="timeline-content">
-                  <span className="timeline-status">{step.status}</span>
-                  <span className="timeline-date">{step.date || 'Pending'}</span>
-                </div>
-                {index < selectedOrder.tracking.length - 1 && (
-                  <div className={`timeline-line ${step.completed ? 'completed' : ''}`}></div>
-                )}
+        {order && (
+          <div className="order-details">
+            <div className="order-header">
+              <div>
+                <span className="order-id">Order #{order.id.slice(-6)}</span>
+                <span className="order-date">Placed on {formatDate(order.created_at)}</span>
               </div>
-            ))}
-          </div>
+              <span 
+                className="order-status"
+                style={{ backgroundColor: getStatusColor(order.status) }}
+              >
+                {getStatusLabel(order.status)}
+              </span>
+            </div>
 
-          <div className="order-items">
-            <h3>Order Items</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Qty</th>
-                  <th>Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedOrder.items.map((item, index) => (
-                  <tr key={index}>
-                    <td>{item.name}</td>
-                    <td>{item.quantity}</td>
-                    <td>GH₵ {item.price}</td>
+            <div className="tracking-timeline">
+              {getTrackingSteps(order.status).map((step, index) => (
+                <div key={index} className={`timeline-step ${step.completed ? 'completed' : ''}`}>
+                  <div className="timeline-dot">
+                    {step.completed && <span>✓</span>}
+                  </div>
+                  <div className="timeline-content">
+                    <span className="timeline-status">{step.label}</span>
+                    <span className="timeline-icon">{step.icon}</span>
+                  </div>
+                  {index < getTrackingSteps(order.status).length - 1 && (
+                    <div className={`timeline-line ${step.completed ? 'completed' : ''}`}></div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {delivery && (
+              <div className="delivery-section">
+                <h2>🚚 Delivery Status</h2>
+                <div className="delivery-status-card">
+                  <span 
+                    className="delivery-badge"
+                    style={{ backgroundColor: getDeliveryStatusColor(delivery.status) }}
+                  >
+                    {getDeliveryStatusLabel(delivery.status)}
+                  </span>
+                </div>
+
+                <div className="delivery-timeline">
+                  {getDeliveryTimeline(delivery.status).map((step, index) => (
+                    <div key={index} className={`timeline-step ${step.completed ? 'completed' : ''}`}>
+                      <div className="timeline-dot">
+                        {step.completed && <span>✓</span>}
+                      </div>
+                      <div className="timeline-content">
+                        <span className="timeline-status">{step.label}</span>
+                        <span className="timeline-icon">{step.icon}</span>
+                      </div>
+                      {index < getDeliveryTimeline(delivery.status).length - 1 && (
+                        <div className={`timeline-line ${step.completed ? 'completed' : ''}`}></div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {delivery.rider && (
+                  <div className="rider-info">
+                    <h3>Your Rider</h3>
+                    <div className="rider-details">
+                      <div className="rider-avatar">👤</div>
+                      <div className="rider-text">
+                        <strong>{delivery.rider.name || 'Assigned Rider'}</strong>
+                        {delivery.rider.phone && <p>📞 {delivery.rider.phone}</p>}
+                        {delivery.rider.email && <p>✉️ {delivery.rider.email}</p>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="delivery-address">
+                  <h3>Delivery Address</h3>
+                  <p>{delivery.deliveryAddress || order.delivery?.address || 'Customer Address'}</p>
+                  {delivery.deliveryPhone && <p>📞 {delivery.deliveryPhone}</p>}
+                </div>
+              </div>
+            )}
+
+            <div className="order-items">
+              <h3>Order Items</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Price</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {order.items?.map((item, index) => (
+                    <tr key={index}>
+                      <td>{item.name}</td>
+                      <td>x{item.quantity}</td>
+                      <td>GH₵ {item.price}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-          <div className="order-summary">
-            <div className="summary-row">
-              <span>Subtotal</span>
-              <span>GH₵ {selectedOrder.total}</span>
-            </div>
-            <div className="summary-row">
-              <span>Delivery Fee</span>
-              <span>GH₵ {selectedOrder.deliveryFee}</span>
-            </div>
-            <div className="summary-row total">
-              <span>Total</span>
-              <span>GH₵ {selectedOrder.total + selectedOrder.deliveryFee}</span>
+            <div className="order-summary">
+              <div className="summary-row">
+                <span>Subtotal</span>
+                <span>GH₵ {order.subtotal || order.total}</span>
+              </div>
+              <div className="summary-row">
+                <span>Delivery Fee</span>
+                <span>GH₵ {order.deliveryFee || 0}</span>
+              </div>
+              <div className="summary-row total">
+                <span>Total</span>
+                <span>GH₵ {order.total}</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {!order && !error && (
+          <div className="no-order">
+            <p>Enter your order ID to track your order</p>
+            <Link to="/my-orders" className="view-orders-btn">View My Orders</Link>
+          </div>
+        )}
       </div>
     </div>
   );

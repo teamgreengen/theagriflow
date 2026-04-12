@@ -1,24 +1,54 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/SupabaseAuthContext';
+import RiderService from '../../services/riderService';
+import './Dashboard.css';
 
 const RiderDashboard = () => {
-  const { userData } = useAuth();
-  const [stats] = useState({
-    todayDeliveries: 8,
-    totalEarnings: 1250,
-    completedDeliveries: 156,
-    rating: 4.8
-  });
+  const { currentUser, userData } = useAuth();
+  const [stats, setStats] = useState({ todayDeliveries: 0, totalEarnings: 0, completedDeliveries: 0, rating: 4.8 });
+  const [availableDeliveries, setAvailableDeliveries] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [availableDeliveries] = useState([
-    { id: 'DEL-001', pickup: 'Green Farm, Accra', delivery: 'Tema, Accra', amount: 25, distance: '15km' },
-    { id: 'DEL-002', pickup: 'Tropical Fruits, Kumasi', delivery: 'Asokwa, Kumasi', amount: 20, distance: '5km' }
-  ]);
+  useEffect(() => {
+    loadData();
+  }, [currentUser]);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [statsData, deliveriesData] = await Promise.all([
+        currentUser ? RiderService.getStats(currentUser.id) : Promise.resolve({ todayDeliveries: 8, totalEarnings: 1250, completedDeliveries: 156, rating: 4.8 }),
+        RiderService.getAvailableDeliveries()
+      ]);
+      setStats(statsData);
+      setAvailableDeliveries(deliveriesData);
+    } catch (err) {
+      console.error('Failed to load data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAccept = async (deliveryId) => {
+    if (!currentUser) {
+      alert('Please log in to accept deliveries');
+      return;
+    }
+    try {
+      await RiderService.acceptDelivery(deliveryId, currentUser.id);
+      alert('Delivery accepted!');
+      loadData();
+    } catch (err) {
+      alert('Failed to accept: ' + err.message);
+    }
+  };
+
+  if (loading) return <div className="dashboard-page"><div className="loading">Loading...</div></div>;
 
   return (
     <div className="dashboard-page">
       <div className="dashboard-header">
-        <h1>Welcome, Rider!</h1>
+        <h1>Welcome, {userData?.name || 'Rider'}!</h1>
         <p>Accept deliveries and earn money</p>
       </div>
 
@@ -34,7 +64,7 @@ const RiderDashboard = () => {
           <div className="stat-icon">💰</div>
           <div className="stat-info">
             <span className="stat-label">Total Earnings</span>
-            <span className="stat-value">GH₵ {stats.totalEarnings}</span>
+            <span className="stat-value">GH₵ {stats.totalEarnings.toLocaleString()}</span>
           </div>
         </div>
         <div className="stat-card">
@@ -55,22 +85,26 @@ const RiderDashboard = () => {
 
       <div className="available-deliveries">
         <h2>Available Deliveries</h2>
-        <div className="delivery-list">
-          {availableDeliveries.map(del => (
-            <div key={del.id} className="delivery-card">
-              <div className="delivery-info">
-                <h4>{del.id}</h4>
-                <p>📍 Pickup: {del.pickup}</p>
-                <p>🏁 Delivery: {del.delivery}</p>
-                <p>📏 Distance: {del.distance}</p>
+        {availableDeliveries.length === 0 ? (
+          <div className="empty-state"><p>No deliveries available</p></div>
+        ) : (
+          <div className="delivery-list">
+            {availableDeliveries.map(del => (
+              <div key={del.id} className="delivery-card">
+                <div className="delivery-info">
+                  <h4>{del.id}</h4>
+                  <p>📍 Pickup: {del.pickupAddress || del.seller?.name || 'Seller Location'}</p>
+                  <p>🏁 Delivery: {del.deliveryAddress || 'Customer Location'}</p>
+                  <p>📏 Distance: {del.distance || 'N/A'}</p>
+                </div>
+                <div className="delivery-action">
+                  <span className="amount">GH₵ {del.fee || del.amount || 0}</span>
+                  <button className="accept-btn" onClick={() => handleAccept(del.id)}>Accept</button>
+                </div>
               </div>
-              <div className="delivery-action">
-                <span className="amount">GH₵ {del.amount}</span>
-                <button className="accept-btn">Accept</button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
