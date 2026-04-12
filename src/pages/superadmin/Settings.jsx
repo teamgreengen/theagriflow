@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import SuperAdminService from '../../services/superAdminService';
+import ImageService from '../../services/supabaseImageService';
 import './Settings.css';
 
 const SuperAdminSettings = () => {
@@ -15,8 +16,10 @@ const SuperAdminSettings = () => {
     delivery: { fee: 15, freeThreshold: 100, type: 'flat' },
     contact: { email: 'support@agriflow.com', phone: '+233241234567', address: 'Accra, Ghana' },
     social: { facebook: '', twitter: '', instagram: '', whatsapp: '' },
-    features: { maintenanceMode: false, registrationEnabled: true, sellerApprovalRequired: true }
+    features: { maintenanceMode: false, registrationEnabled: true, sellerApprovalRequired: true },
+    branding: { logo: '', favicon: '', primaryColor: '#2d5a27', secondaryColor: '#f59e0b' }
   });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -45,9 +48,9 @@ const SuperAdminSettings = () => {
         { id: 'delivery', value: settings.delivery, category: 'business' },
         { id: 'contact', value: settings.contact, category: 'contact' },
         { id: 'social', value: settings.social, category: 'contact' },
-        { id: 'features', value: settings.features, category: 'general' }
+        { id: 'features', value: settings.features, category: 'general' },
+        { id: 'branding', value: settings.branding, category: 'branding' }
       ];
-      
       await SuperAdminService.saveMultipleSettings(settingsArray);
       await SuperAdminService.logAction(currentUser?.id, 'update_settings', 'settings', null, { categories: settingsArray.map(s => s.id) });
       
@@ -93,6 +96,9 @@ const SuperAdminSettings = () => {
       <div className="settings-tabs">
         <button className={`tab-btn ${activeTab === 'general' ? 'active' : ''}`} onClick={() => setActiveTab('general')}>
           ⚙️ General
+        </button>
+        <button className={`tab-btn ${activeTab === 'branding' ? 'active' : ''}`} onClick={() => setActiveTab('branding')}>
+          🎨 Branding
         </button>
         <button className={`tab-btn ${activeTab === 'business' ? 'active' : ''}`} onClick={() => setActiveTab('business')}>
           💰 Business
@@ -162,6 +168,131 @@ const SuperAdminSettings = () => {
               <span>Require Seller Approval</span>
             </label>
             <p className="form-help">New sellers need admin approval before they can sell</p>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'branding' && (
+        <div className="settings-section">
+          <h2>Platform Branding</h2>
+          
+          <div className="form-group">
+            <label>Platform Logo</label>
+            <div className="image-upload-area">
+              {settings.branding?.logo ? (
+                <div className="image-preview-box">
+                  <img src={settings.branding.logo} alt="Logo" />
+                  <button className="remove-btn" onClick={() => handleChange('branding', 'logo', '')}>×</button>
+                </div>
+              ) : (
+                <div className="upload-placeholder">
+                  <span>📁</span>
+                  <p>Click to upload logo</p>
+                </div>
+              )}
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  setUploading(true);
+                  try {
+                    const url = await ImageService.uploadImage(file, 'branding');
+                    handleChange('branding', 'logo', url);
+                  } catch (err) {
+                    alert('Upload failed: ' + err.message);
+                  } finally {
+                    setUploading(false);
+                  }
+                }} 
+                disabled={uploading}
+              />
+            </div>
+            <p className="form-help">Recommended: 200x60px, PNG with transparent background</p>
+          </div>
+
+          <div className="form-group">
+            <label>Favicon</label>
+            <div className="image-upload-area">
+              {settings.branding?.favicon ? (
+                <div className="image-preview-box small">
+                  <img src={settings.branding.favicon} alt="Favicon" />
+                  <button className="remove-btn" onClick={() => handleChange('branding', 'favicon', '')}>×</button>
+                </div>
+              ) : (
+                <div className="upload-placeholder">
+                  <span>🖼️</span>
+                  <p>Click to upload favicon</p>
+                </div>
+              )}
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  setUploading(true);
+                  try {
+                    const url = await ImageService.uploadImage(file, 'branding');
+                    handleChange('branding', 'favicon', url);
+                  } catch (err) {
+                    alert('Upload failed: ' + err.message);
+                  } finally {
+                    setUploading(false);
+                  }
+                }} 
+                disabled={uploading}
+              />
+            </div>
+            <p className="form-help">Recommended: 32x32px or 64x64px, PNG or ICO</p>
+          </div>
+
+          <h3>Theme Colors</h3>
+          <div className="color-pickers">
+            <div className="form-group">
+              <label>Primary Color</label>
+              <div className="color-input">
+                <input 
+                  type="color" 
+                  value={settings.branding?.primaryColor || '#2d5a27'} 
+                  onChange={(e) => handleChange('branding', 'primaryColor', e.target.value)} 
+                />
+                <input 
+                  type="text" 
+                  value={settings.branding?.primaryColor || '#2d5a27'} 
+                  onChange={(e) => handleChange('branding', 'primaryColor', e.target.value)} 
+                  className="color-text"
+                />
+              </div>
+              <p className="form-help">Used for buttons, links, headers</p>
+            </div>
+            
+            <div className="form-group">
+              <label>Secondary Color</label>
+              <div className="color-input">
+                <input 
+                  type="color" 
+                  value={settings.branding?.secondaryColor || '#f59e0b'} 
+                  onChange={(e) => handleChange('branding', 'secondaryColor', e.target.value)} 
+                />
+                <input 
+                  type="text" 
+                  value={settings.branding?.secondaryColor || '#f59e0b'} 
+                  onChange={(e) => handleChange('branding', 'secondaryColor', e.target.value)} 
+                  className="color-text"
+                />
+              </div>
+              <p className="form-help">Used for accents, highlights, badges</p>
+            </div>
+          </div>
+
+          <div className="color-preview">
+            <h4>Preview</h4>
+            <div className="preview-buttons">
+              <button style={{ backgroundColor: settings.branding?.primaryColor || '#2d5a27' }}>Primary Button</button>
+              <button style={{ backgroundColor: settings.branding?.secondaryColor || '#f59e0b' }}>Secondary Button</button>
+            </div>
           </div>
         </div>
       )}
