@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/SupabaseAuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
+import ThemeProvider from './context/ThemeContext';
 
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -96,9 +97,10 @@ const SuperAdminRoute = ({ children }) => (
 function App() {
   return (
     <AuthProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <BrowserRouter>
+      <ThemeProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <BrowserRouter>
           <div className="app">
             <Navbar />
             <main className="main-content">
@@ -183,7 +185,8 @@ function App() {
           </div>
         </BrowserRouter>
         </WishlistProvider>
-      </CartProvider>
+        </CartProvider>
+      </ThemeProvider>
     </AuthProvider>
   );
 }
