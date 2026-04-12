@@ -36,19 +36,19 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 16px;
 }
 
 .page-header h1 {
-  font-size: 28px;
+  font-size: 22px;
 }
 
 .add-btn {
-  padding: 12px 24px;
+  padding: 10px 20px;
   background: var(--primary-color, #2d5a27);
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -73,7 +73,7 @@ body {
 .deliveries-list td,
 .transactions th,
 .transactions td {
-  padding: 12px 15px;
+  padding: 10px 12px;
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
 }

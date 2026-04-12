@@ -3,30 +3,31 @@
 .superadmin-layout,
 .rider-layout {
   display: flex;
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - 60px);
 }
 
 .seller-sidebar,
 .admin-sidebar,
 .superadmin-sidebar,
 .rider-sidebar {
-  width: 250px;
-  background: #1a1a1a;
+  width: 220px;
+  background: var(--primary-color, #2d5a27);
   color: white;
-  padding: 30px 20px;
+  padding: 20px 15px;
   position: sticky;
-  top: 70px;
-  height: calc(100vh - 70px);
+  top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
 }
 
 .seller-sidebar h2,
 .admin-sidebar h2,
 .superadmin-sidebar h2,
 .rider-sidebar h2 {
-  font-size: 20px;
-  margin-bottom: 30px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #333;
+  font-size: 18px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
 }
 
 .seller-sidebar nav,
@@ -35,18 +36,19 @@
 .rider-sidebar nav {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
 }
 
 .seller-sidebar nav a,
 .admin-sidebar nav a,
 .superadmin-sidebar nav a,
 .rider-sidebar nav a {
-  color: #aaa;
+  color: rgba(255,255,255,0.85);
   text-decoration: none;
-  padding: 12px 15px;
-  border-radius: 10px;
-  transition: all 0.3s;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  font-size: 14px;
 }
 
 .seller-sidebar nav a:hover,
@@ -57,7 +59,7 @@
 .admin-sidebar nav a.active,
 .superadmin-sidebar nav a.active,
 .rider-sidebar nav a.active {
-  background: var(--primary-color, #2d5a27);
+  background: rgba(255,255,255,0.2);
   color: white;
 }
 
@@ -66,8 +68,9 @@
 .superadmin-content,
 .rider-content {
   flex: 1;
-  padding: 30px;
-  background: #f9fafb;
+  padding: 20px;
+  background: #f5f5f5;
+  overflow-x: hidden;
 }
 
 .dashboard-page {
