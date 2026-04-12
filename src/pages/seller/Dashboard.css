@@ -57,7 +57,7 @@
 .admin-sidebar nav a.active,
 .superadmin-sidebar nav a.active,
 .rider-sidebar nav a.active {
-  background: #2d5a27;
+  background: var(--primary-color, #2d5a27);
   color: white;
 }
 
@@ -201,7 +201,7 @@
 .action-btn {
   display: block;
   padding: 15px;
-  background: #2d5a27;
+  background: var(--primary-color, #2d5a27);
   color: white;
   text-decoration: none;
   border-radius: 10px;

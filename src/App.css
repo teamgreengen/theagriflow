@@ -45,7 +45,7 @@ body {
 
 .add-btn {
   padding: 12px 24px;
-  background: #2d5a27;
+  background: var(--primary-color, #2d5a27);
   color: white;
   border: none;
   border-radius: 10px;
@@ -125,7 +125,7 @@ body {
 .complete-btn,
 .verify-btn {
   padding: 8px 16px;
-  background: #2d5a27;
+  background: var(--primary-color, #2d5a27);
   color: white;
   border: none;
   border-radius: 8px;
@@ -167,7 +167,7 @@ body {
 }
 
 .role-badge.super_admin {
-  background: #2d5a27;
+  background: var(--primary-color, #2d5a27);
   color: white;
   padding: 4px 12px;
   border-radius: 20px;
@@ -271,7 +271,7 @@ body {
 
 .save-btn {
   padding: 14px 40px;
-  background: #2d5a27;
+  background: var(--primary-color, #2d5a27);
   color: white;
   border: none;
   border-radius: 30px;
@@ -305,13 +305,13 @@ body {
 .earnings-card strong {
   display: block;
   font-size: 28px;
-  color: #2d5a27;
+  color: var(--primary-color, #2d5a27);
   margin-bottom: 15px;
 }
 
 .earnings-card button {
   padding: 10px 25px;
-  background: #2d5a27;
+  background: var(--primary-color, #2d5a27);
   color: white;
   border: none;
   border-radius: 25px;
@@ -355,7 +355,7 @@ body {
 }
 
 .action-card:hover {
-  background: #2d5a27;
+  background: var(--primary-color, #2d5a27);
   color: white;
 }
 
@@ -405,7 +405,7 @@ body {
 .delivery-status .amount {
   font-size: 24px;
   font-weight: 700;
-  color: #2d5a27;
+  color: var(--primary-color, #2d5a27);
 }
 
 /* Responsive */

@@ -93,7 +93,7 @@
 }
 
 .portal-btn.seller {
-  background: #2d5a27;
+  background: var(--primary-color, #2d5a27);
   color: white;
 }
 
