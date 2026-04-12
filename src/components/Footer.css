@@ -1,0 +1,162 @@
+.footer {
+  background: #1a1a1a;
+  color: white;
+  margin-top: auto;
+}
+
+.footer-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 60px 30px 30px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 40px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.footer-logo .logo-icon {
+  font-size: 32px;
+  margin-right: 10px;
+}
+
+.footer-logo .logo-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: #4ade80;
+}
+
+.footer-section p {
+  color: #aaa;
+  line-height: 1.8;
+}
+
+.social-links {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.social-links a {
+  color: #aaa;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.social-links a:hover {
+  color: #4ade80;
+}
+
+.footer-section h3 {
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+.footer-section a {
+  display: block;
+  color: #aaa;
+  text-decoration: none;
+  margin-bottom: 12px;
+  transition: color 0.3s;
+}
+
+.footer-section a:hover {
+  color: #4ade80;
+}
+
+.footer-bottom {
+  border-top: 1px solid #333;
+  padding: 20px 30px;
+  text-align: center;
+  color: #666;
+}
+
+/* Portal Access Buttons */
+.portal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.portal-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+}
+
+.portal-btn.seller {
+  background: #2d5a27;
+  color: white;
+}
+
+.portal-btn.admin {
+  background: #2563eb;
+  color: white;
+}
+
+.portal-btn.superadmin {
+  background: #7c3aed;
+  color: white;
+}
+
+.portal-btn.rider {
+  background: #ea580c;
+  color: white;
+}
+
+.portal-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .footer-container {
+    padding: 40px 20px 20px;
+    gap: 30px;
+  }
+  
+  .footer-section {
+    text-align: center;
+  }
+  
+  .footer-logo {
+    justify-content: center;
+  }
+  
+  .social-links {
+    justify-content: center;
+  }
+  
+  .portal-links {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-container {
+    grid-template-columns: 1fr;
+    padding: 30px 15px 15px;
+  }
+  
+  .footer-logo .logo-icon {
+    font-size: 26px;
+  }
+  
+  .footer-logo .logo-text {
+    font-size: 20px;
+  }
+  
+  .footer-section h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+}

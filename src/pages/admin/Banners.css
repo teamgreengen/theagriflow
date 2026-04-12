@@ -1,0 +1,55 @@
+.banners-page { max-width: 1200px; margin: 0 auto; padding: 30px; }
+.banners-page .page-header { margin-bottom: 30px; }
+.banners-page .page-header h1 { font-size: 28px; }
+
+.banners-tabs { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+.tab-btn { padding: 12px 24px; background: none; border: none; font-size: 15px; font-weight: 500; color: #666; cursor: pointer; border-radius: 8px; }
+.tab-btn.active { background: #2563eb; color: white; }
+
+.banners-section { background: white; border-radius: 15px; padding: 25px; }
+.banners-section .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+.banners-section .section-header h2 { font-size: 20px; }
+
+.add-btn { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+
+.banners-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.banner-card { border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+.banner-card img { width: 100%; height: 180px; object-fit: cover; }
+.banner-info { padding: 15px; }
+.banner-info h3 { font-size: 16px; margin-bottom: 5px; }
+.banner-info p { color: #666; font-size: 14px; margin-bottom: 8px; }
+.banner-link { display: block; color: #2563eb; font-size: 13px; }
+.banner-position { display: block; color: #888; font-size: 12px; margin-top: 5px; }
+.banner-actions { display: flex; align-items: center; gap: 10px; padding: 15px; border-top: 1px solid #e5e7eb; }
+
+.toggle { position: relative; width: 50px; height: 26px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; inset: 0; background: #ccc; border-radius: 26px; cursor: pointer; transition: 0.3s; }
+.slider::before { content: ''; position: absolute; width: 20px; height: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+.toggle input:checked + .slider { background: #16a34a; }
+.toggle input:checked + .slider::before { transform: translateX(24px); }
+
+.edit-btn { padding: 8px 16px; background: #dbeafe; color: #2563eb; border: none; border-radius: 6px; cursor: pointer; }
+.delete-btn { padding: 8px 16px; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; }
+
+.promotions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.promo-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; }
+.promo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.promo-header h3 { font-size: 16px; }
+.promo-discount { background: #dc0000; color: white; padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+.promo-dates { display: flex; gap: 20px; margin-bottom: 15px; }
+.promo-dates p { color: #666; font-size: 13px; }
+.promo-actions { display: flex; align-items: center; gap: 10px; }
+
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: white; border-radius: 15px; width: 90%; max-width: 500px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; border-bottom: 1px solid #e5e7eb; }
+.modal-header h2 { font-size: 20px; margin: 0; }
+.close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #666; }
+.modal-content form { padding: 25px; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #333; }
+.form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; }
+.form-actions { display: flex; gap: 15px; justify-content: flex-end; margin-top: 25px; }
+.cancel-btn { padding: 12px 24px; background: #f3f4f6; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; }
+.submit-btn { padding: 12px 24px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
