@@ -532,3 +532,52 @@ body {
     font-size: 12px;
   }
 }
+
+/* Sidebar Navigation Extra Styles */
+.sidebar-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+}
+
+.sidebar-logout-btn {
+  width: 100%;
+  padding: 12px;
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.sidebar-logout-btn:hover {
+  background: #fecaca;
+  transform: translateY(-2px);
+}
+
+.superadmin-sidebar .sidebar-logout-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.superadmin-sidebar .sidebar-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-header {
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.superadmin-sidebar .sidebar-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}

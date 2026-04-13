@@ -292,8 +292,11 @@
   font-size: 12px;
 }
 
-.product-info-grid .product-name {
+.product-info-grid > div.product-name-wrapper {
   grid-column: span 2;
+}
+
+.product-info-grid .product-name {
   font-size: 13px;
   color: #333;
   line-height: 1.3;

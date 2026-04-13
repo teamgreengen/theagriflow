@@ -11,6 +11,7 @@ import SellerRegister from './pages/seller/Register';
 import AdminLogin from './pages/admin/Login';
 import RiderLogin from './pages/rider/Login';
 import RiderRegister from './pages/rider/Register';
+import SuperAdminLogin from './pages/superadmin/Login';
 
 import Home from './pages/frontend/Home';
 import Products from './pages/frontend/Products';
@@ -125,9 +126,11 @@ function App() {
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/rider/login" element={<RiderLogin />} />
                 <Route path="/rider/register" element={<RiderRegister />} />
+                <Route path="/superadmin/login" element={<SuperAdminLogin />} />
 
-                {/* Demo Portals - No Auth Required */}
+                {/* Protected Portals */}
                 <Route path="/seller/*" element={
+                  <SellerRoute>
                     <SellerLayout>
                       <Routes>
                         <Route index element={<SellerDashboard />} />
@@ -136,9 +139,11 @@ function App() {
                         <Route path="earnings" element={<SellerEarnings />} />
                       </Routes>
                     </SellerLayout>
+                  </SellerRoute>
                 } />
 
                 <Route path="/admin/*" element={
+                  <AdminRoute>
                     <AdminLayout>
                       <Routes>
                         <Route index element={<AdminDashboard />} />
@@ -148,9 +153,11 @@ function App() {
                         <Route path="banners" element={<AdminBanners />} />
                       </Routes>
                     </AdminLayout>
+                  </AdminRoute>
                 } />
 
                 <Route path="/superadmin/*" element={
+                  <SuperAdminRoute>
                     <SuperAdminLayout>
                       <Routes>
                         <Route index element={<SuperAdminDashboard />} />
@@ -161,16 +168,17 @@ function App() {
                         <Route path="analytics" element={<SuperAdminAnalytics />} />
                         <Route path="banners" element={<SuperAdminBanners />} />
                         <Route path="categories" element={<SuperAdminCategories />} />
-                        <Route path=" financials" element={<SuperAdminFinancials />} />
                         <Route path="financials" element={<SuperAdminFinancials />} />
                         <Route path="notifications" element={<SuperAdminNotifications />} />
                         <Route path="activity" element={<SuperAdminActivity />} />
                         <Route path="settings" element={<SuperAdminSettings />} />
                       </Routes>
                     </SuperAdminLayout>
+                  </SuperAdminRoute>
                 } />
 
                 <Route path="/rider/*" element={
+                  <RiderRoute>
                     <RiderLayout>
                       <Routes>
                         <Route index element={<RiderDashboard />} />
@@ -178,6 +186,7 @@ function App() {
                         <Route path="earnings" element={<RiderEarnings />} />
                       </Routes>
                     </RiderLayout>
+                  </RiderRoute>
                 } />
               </Routes>
             </main>
@@ -191,72 +200,136 @@ function App() {
   );
 }
 
-const SellerLayout = ({ children }) => (
-  <div className="seller-layout">
-    <aside className="seller-sidebar">
-      <h2>Seller Panel</h2>
-      <nav>
-        <a href="/seller">Dashboard</a>
-        <a href="/seller/products">Products</a>
-        <a href="/seller/orders">Orders</a>
-        <a href="/seller/earnings">Earnings</a>
-      </nav>
-    </aside>
-    <div className="seller-content">{children}</div>
-  </div>
-);
+const SellerLayout = ({ children }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
-const AdminLayout = ({ children }) => (
-  <div className="admin-layout">
-    <aside className="admin-sidebar">
-      <h2>Admin Panel</h2>
-      <nav>
-        <a href="/admin">Dashboard</a>
-        <a href="/admin/sellers">Sellers</a>
-        <a href="/admin/orders">Orders</a>
-        <a href="/admin/categories">Categories</a>
-        <a href="/admin/banners">Banners</a>
-      </nav>
-    </aside>
-    <div className="admin-content">{children}</div>
-  </div>
-);
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
-const SuperAdminLayout = ({ children }) => (
-  <div className="superadmin-layout">
-    <aside className="superadmin-sidebar">
-      <h2>Super Admin</h2>
-      <nav>
-        <a href="/superadmin">📊 Dashboard</a>
-        <a href="/superadmin/analytics">📈 Analytics</a>
-        <a href="/superadmin/orders">📦 Orders</a>
-        <a href="/superadmin/users">👥 Users</a>
-        <a href="/superadmin/sellers">🏪 Sellers</a>
-        <a href="/superadmin/banners">🎨 Banners</a>
-        <a href="/superadmin/categories">📁 Categories</a>
-        <a href="/superadmin/financials">💰 Financials</a>
-        <a href="/superadmin/notifications">🔔 Notifications</a>
-        <a href="/superadmin/activity">📝 Activity Logs</a>
-        <a href="/superadmin/admins">⚙️ Admins</a>
-        <a href="/superadmin/settings">🔧 Settings</a>
-      </nav>
-    </aside>
-    <div className="superadmin-content">{children}</div>
-  </div>
-);
+  return (
+    <div className="seller-layout">
+      <aside className="seller-sidebar">
+        <div className="sidebar-header">
+          <h2>Seller Panel</h2>
+        </div>
+        <nav>
+          <Link to="/seller">Dashboard</Link>
+          <Link to="/seller/products">Products</Link>
+          <Link to="/seller/orders">Orders</Link>
+          <Link to="/seller/earnings">Earnings</Link>
+          <div className="sidebar-divider"></div>
+          <button onClick={handleLogout} className="sidebar-logout-btn">
+            Logout
+          </button>
+        </nav>
+      </aside>
+      <div className="seller-content">{children}</div>
+    </div>
+  );
+};
 
-const RiderLayout = ({ children }) => (
-  <div className="rider-layout">
-    <aside className="rider-sidebar">
-      <h2>Rider Panel</h2>
-      <nav>
-        <a href="/rider">Dashboard</a>
-        <a href="/rider/deliveries">Deliveries</a>
-        <a href="/rider/earnings">Earnings</a>
-      </nav>
-    </aside>
-    <div className="rider-content">{children}</div>
-  </div>
-);
+const AdminLayout = ({ children }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  return (
+    <div className="admin-layout">
+      <aside className="admin-sidebar">
+        <div className="sidebar-header">
+          <h2>Admin Panel</h2>
+        </div>
+        <nav>
+          <Link to="/admin">Dashboard</Link>
+          <Link to="/admin/sellers">Sellers</Link>
+          <Link to="/admin/orders">Orders</Link>
+          <Link to="/admin/categories">Categories</Link>
+          <Link to="/admin/banners">Banners</Link>
+          <div className="sidebar-divider"></div>
+          <button onClick={handleLogout} className="sidebar-logout-btn">
+            Logout
+          </button>
+        </nav>
+      </aside>
+      <div className="admin-content">{children}</div>
+    </div>
+  );
+};
+
+const SuperAdminLayout = ({ children }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  return (
+    <div className="superadmin-layout">
+      <aside className="superadmin-sidebar">
+        <div className="sidebar-header">
+          <h2>Super Admin</h2>
+        </div>
+        <nav>
+          <Link to="/superadmin">📊 Dashboard</Link>
+          <Link to="/superadmin/analytics">📈 Analytics</Link>
+          <Link to="/superadmin/orders">📦 Orders</Link>
+          <Link to="/superadmin/users">👥 Users</Link>
+          <Link to="/superadmin/sellers">🏪 Sellers</Link>
+          <Link to="/superadmin/banners">🎨 Banners</Link>
+          <Link to="/superadmin/categories">📁 Categories</Link>
+          <Link to="/superadmin/financials">💰 Financials</Link>
+          <Link to="/superadmin/notifications">🔔 Notifications</Link>
+          <Link to="/superadmin/activity">📝 Activity Logs</Link>
+          <Link to="/superadmin/admins">⚙️ Admins</Link>
+          <Link to="/superadmin/settings">🔧 Settings</Link>
+          <div className="sidebar-divider"></div>
+          <button onClick={handleLogout} className="sidebar-logout-btn">
+            🚪 Logout
+          </button>
+        </nav>
+      </aside>
+      <div className="superadmin-content">{children}</div>
+    </div>
+  );
+};
+
+const RiderLayout = ({ children }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  return (
+    <div className="rider-layout">
+      <aside className="rider-sidebar">
+        <div className="sidebar-header">
+          <h2>Rider Panel</h2>
+        </div>
+        <nav>
+          <Link to="/rider">Dashboard</Link>
+          <Link to="/rider/deliveries">Deliveries</Link>
+          <Link to="/rider/earnings">Earnings</Link>
+          <div className="sidebar-divider"></div>
+          <button onClick={handleLogout} className="sidebar-logout-btn">
+            Logout
+          </button>
+        </nav>
+      </aside>
+      <div className="rider-content">{children}</div>
+    </div>
+  );
+};
 
 export default App;

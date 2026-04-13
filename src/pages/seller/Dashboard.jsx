@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/SupabaseAuthContext';
+import { Link } from 'react-router-dom';
 import SellerService from '../../services/sellerService';
 import './Dashboard.css';
 
@@ -117,9 +118,9 @@ const SellerDashboard = () => {
         <div className="quick-actions">
           <h2>Quick Actions</h2>
           <div className="action-buttons">
-            <a href="/seller/products" className="action-btn">Add Product</a>
-            <a href="/seller/orders" className="action-btn">View Orders</a>
-            <a href="/seller/earnings" className="action-btn">Withdraw Earnings</a>
+            <Link to="/seller/products" className="action-btn">Add Product</Link>
+            <Link to="/seller/orders" className="action-btn">View Orders</Link>
+            <Link to="/seller/earnings" className="action-btn">Withdraw Earnings</Link>
           </div>
         </div>
       </div>

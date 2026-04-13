@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/SupabaseAuthContext';
-import './Auth.css';
+import '../auth/Auth.css';
 
-const Login = () => {
+const SuperAdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,8 +17,15 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(email, password);
-      navigate('/');
+      const user = await login(email, password);
+      // Explicitly check for super_admin role
+      if (user && user.role === 'super_admin') {
+        navigate('/superadmin');
+      } else if (user && user.role === 'admin') {
+        setError('Please use the Admin Login page for standard admin access.');
+      } else {
+        setError('Access denied. Super Admin only.');
+      }
     } catch (err) {
       setError(err.message || 'Failed to login');
     } finally {
@@ -27,28 +34,30 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-page">
+    <div className="auth-page super-admin-auth">
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-header">
             <Link to="/" className="auth-logo">
-              <img src="/logo-2.png" alt="Agriflow" className="auth-logo-img" />
+              <span className="logo-text">agri</span>
+              <span className="logo-highlight">flow</span>
             </Link>
+            <span className="auth-badge super-admin">Super Admin</span>
           </div>
-          <h2>Welcome Back</h2>
-          <p className="auth-subtitle">Sign in to your Agriflow account</p>
+          <h2>Super Admin Sign In</h2>
+          <p className="auth-subtitle">Full system control access</p>
 
           {error && <div className="auth-error">{error}</div>}
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Email</label>
+              <label>Super Admin Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="Enter your email"
+                placeholder="Enter super admin email"
               />
             </div>
 
@@ -59,32 +68,22 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="Enter your password"
+                placeholder="Enter secure password"
               />
             </div>
 
-            <button type="submit" disabled={loading} className="auth-btn">
-              {loading ? 'Signing in...' : 'Sign In'}
+            <button type="submit" disabled={loading} className="auth-btn super-admin-btn">
+              {loading ? 'Authenticating...' : 'Sign In to Root Console'}
             </button>
           </form>
 
           <p className="auth-link">
-            Don't have an account? <Link to="/register">Register here</Link>
+            Standard Access: <Link to="/admin/login">Admin</Link> | <Link to="/seller/login">Seller</Link> | <Link to="/login">Buyer</Link>
           </p>
-          
-          <div className="auth-portals">
-            <p>Are you a:</p>
-            <div className="portal-links">
-              <Link to="/seller/login">Seller</Link>
-              <Link to="/admin/login">Admin</Link>
-              <Link to="/rider/login">Rider</Link>
-              <Link to="/superadmin/login">Super Admin</Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default SuperAdminLogin;

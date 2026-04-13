@@ -34,15 +34,7 @@ const Footer = () => {
           <a href="#">Farm Equipment</a>
         </div>
 
-        <div className="footer-section">
-          <h3>Portal Access (Demo)</h3>
-          <div className="portal-links">
-            <a href="/seller" className="portal-btn seller">Seller Portal</a>
-            <a href="/admin" className="portal-btn admin">Admin Portal</a>
-            <a href="/superadmin" className="portal-btn superadmin">Super Admin</a>
-            <a href="/rider" className="portal-btn rider">Rider Portal</a>
-          </div>
-        </div>
+
 
         <div className="footer-section">
           <h3>Contact Us</h3>

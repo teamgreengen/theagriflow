@@ -4,6 +4,8 @@ import { ProductService } from '../../services/supabaseService';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import Reviews from '../../components/Reviews';
+import supabase from '../../config/supabase';
+import { useAuth } from '../../context/SupabaseAuthContext';
 import './ProductDetail.css';
 
 const ProductDetail = () => {
@@ -41,27 +43,78 @@ const ProductDetail = () => {
     reviews: 28
   };
 
+  const [reviews, setReviews] = useState([]);
+
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductAndReviews = async () => {
       setLoading(true);
       try {
-        const data = await ProductService.get(id);
+        const [productData, reviewsData] = await Promise.all([
+          ProductService.get(id),
+          supabase.from('reviews').select('*, user:users(name)').eq('productId', id).order('created_at', { ascending: false })
+        ]);
         
-        if (data) {
-          setProduct(data);
+        if (productData) {
+          setProduct(productData);
         } else {
           setProduct(fallbackProduct);
         }
+
+        if (reviewsData.data) {
+          setReviews(reviewsData.data.map(r => ({
+            ...r,
+            reviewerName: r.user?.name || 'Anonymous User',
+            createdAt: r.created_at
+          })));
+        }
       } catch (error) {
-        console.log('Using fallback product:', error.message);
+        console.log('Fetch error:', error.message);
         setProduct(fallbackProduct);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProduct();
+    fetchProductAndReviews();
   }, [id]);
+
+  const handleAddReview = async (review) => {
+    if (!currentUser) {
+      alert('Please login to write a review');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .insert({
+          productId: id,
+          userId: currentUser.id,
+          rating: review.rating,
+          comment: review.comment,
+          created_at: new Date().toISOString()
+        })
+        .select('*, user:users(name)')
+        .single();
+      
+      if (error) throw error;
+
+      if (data) {
+        setReviews([
+          {
+            ...data,
+            reviewerName: data.user?.name || userData?.name || 'Anonymous User',
+            createdAt: data.created_at
+          },
+          ...reviews
+        ]);
+        alert('Review submitted! Thank you.');
+      }
+    } catch (error) {
+      console.error('Review error:', error);
+      alert('Failed to submit review');
+    }
+  };
 
   const handleAddToCart = () => {
     addToCart({ ...product, quantity });
@@ -193,8 +246,8 @@ const ProductDetail = () => {
 
       <Reviews 
         productId={id} 
-        reviews={[]}
-        onAddReview={(review) => console.log('New review:', review)}
+        reviews={reviews}
+        onAddReview={handleAddReview}
       />
     </div>
   );

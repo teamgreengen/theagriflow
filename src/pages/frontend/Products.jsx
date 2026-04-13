@@ -94,18 +94,18 @@ const Products = () => {
         <span className="product-count">{products.length} products</span>
       </div>
 
-      <div className="products-layout">
+      <div className="products-container">
         <aside className="products-sidebar">
           <div className="filter-section">
             <h3>Categories</h3>
-            <ul className="category-filter">
+            <ul className="category-list">
               {categories.map(cat => (
                 <li key={cat.id}>
                   <Link 
                     to={cat.id === 'all' ? '/products' : `/products?category=${cat.id}`}
-                    className={(!categoryFilter && cat.id === 'all') || categoryFilter === cat.id ? 'active' : ''}
+                    className={`category-item ${(!categoryFilter && cat.id === 'all') || categoryFilter === cat.id ? 'active' : ''}`}
                   >
-                    {cat.icon} {cat.name}
+                    <span>{cat.icon}</span> {cat.name}
                   </Link>
                 </li>
               ))}
@@ -125,7 +125,7 @@ const Products = () => {
 
         <main className="products-main">
           <div className="products-toolbar">
-            <div className="view-toggle">
+            <div className="view-options">
               <button 
                 className={viewMode === 'grid' ? 'active' : ''} 
                 onClick={() => setViewMode('grid')}
@@ -156,30 +156,35 @@ const Products = () => {
               <Link to="/products" className="btn">View All Products</Link>
             </div>
           ) : (
-            <div className={`products-${viewMode}`}>
+            <div className={`products-grid ${viewMode === 'list' ? 'list' : ''}`}>
               {products.map(product => (
                 <div key={product.id} className="product-card">
-                  <Link to={`/product/${product.id}`}>
+                  <Link to={`/product/${product.id}`} className="product-image">
                     <img src={product.image} alt={product.name} />
+                    <button className="quick-add" onClick={(e) => { e.preventDefault(); handleAddToCart(product); }}>
+                      Quick Add to Cart
+                    </button>
                   </Link>
                   <div className="product-info">
                     <Link to={`/product/${product.id}`} className="product-name">
                       {product.name}
                     </Link>
-                    <p className="product-seller">{product.sellerName || 'Agriflow Seller'}</p>
-                    <div className="product-price">
-                      <span className="current-price">GH₵ {product.price}</span>
-                      {product.originalPrice && (
-                        <span className="old-price">GH₵ {product.originalPrice}</span>
-                      )}
+                    <p className="seller-name">{product.sellerName || 'Agriflow Seller'}</p>
+                    <div className="product-meta">
+                      <div className="rating">
+                        <span className="stars">★ {product.rating || '5.0'}</span>
+                        <span className="reviews">({product.reviews || 0})</span>
+                      </div>
+                      <span className="unit">{product.unit || 'per unit'}</span>
                     </div>
-                    <div className="product-rating">
-                      <span className="stars">★ {product.rating || '5.0'}</span>
-                      <span className="reviews">({product.reviews || 0})</span>
+                    <div className="product-footer">
+                      <div className="price">
+                        <span className="current-price">GH₵ {product.price}</span>
+                      </div>
+                      <Link to={`/product/${product.id}`} className="view-btn">
+                        View Details
+                      </Link>
                     </div>
-                    <button className="add-to-cart" onClick={() => handleAddToCart(product)}>
-                      Add to Cart
-                    </button>
                   </div>
                 </div>
               ))}

@@ -38,11 +38,27 @@ const ProductCard2x2 = ({ product, showDiscount = true }) => {
       <img src={product.image} alt={product.name} />
       <div className="product-info">
         <div className="product-info-grid">
-          <span className="product-name">{product.name}</span>
-          <span className="product-price">GH₵ {product.price}</span>
-          {product.oldPrice && <span className="product-old-price">GH₵ {product.oldPrice}</span>}
-          {discount > 0 && showDiscount && <span className="product-discount">-{discount}%</span>}
-          {product.sold && <span className="product-sold">{product.sold} sold</span>}
+          <div className="product-name-wrapper">
+            <span className="product-name">{product.name}</span>
+          </div>
+          <div>
+            <span className="product-price">GH₵ {product.price}</span>
+          </div>
+          {product.oldPrice && (
+            <div>
+              <span className="product-old-price">GH₵ {product.oldPrice}</span>
+            </div>
+          )}
+          {discount > 0 && showDiscount && (
+            <div>
+              <span className="product-discount">-{discount}%</span>
+            </div>
+          )}
+          {product.sold && (
+            <div>
+              <span className="product-sold">{product.sold} sold</span>
+            </div>
+          )}
         </div>
       </div>
       <div className="add-to-cart-overlay">

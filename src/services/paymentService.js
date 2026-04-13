@@ -22,7 +22,7 @@ export const PaymentService = {
     await loadPaystackScript();
 
     const handler = window.PaystackPop.setup({
-      key: 'pk_live_0cf753f9246e8742a6084493e00848b061e05522',
+      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_your_default_key',
       email,
       amount: amount * 100,
       currency: 'GHS',
