@@ -1,8 +1,7 @@
 -- =============================================
--- AGRIFLOW DATABASE SCHEMA - COMPLETE
+-- AGRIFLOW DATABASE TABLES ONLY
+-- Drop existing tables (run in order)
 -- =============================================
-
--- Drop existing tables (run in order to handle dependencies)
 DROP TABLE IF EXISTS rider_withdrawals CASCADE;
 DROP TABLE IF EXISTS withdrawals CASCADE;
 DROP TABLE IF EXISTS wishlist CASCADE;
@@ -22,14 +21,12 @@ DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS products CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
--- =============================================
--- 1. USERS TABLE
--- =============================================
+-- 1. USERS
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT UNIQUE NOT NULL,
   name TEXT,
-  role TEXT DEFAULT 'buyer' CHECK (role IN ('buyer', 'seller', 'admin', 'super_admin', 'rider')),
+  role TEXT DEFAULT 'buyer',
   phone TEXT,
   address TEXT,
   city TEXT,
@@ -40,13 +37,23 @@ CREATE TABLE users (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 2. PRODUCTS TABLE
--- =============================================
+-- 2. CATEGORIES
+CREATE TABLE categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT,
+  image TEXT,
+  parentId UUID REFERENCES categories(id),
+  orderIndex INTEGER DEFAULT 0,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. PRODUCTS
 CREATE TABLE products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  sellerId UUID REFERENCES users(id),
-  categoryId UUID,
+  sellerId UUID REFERENCES users(id) ON DELETE CASCADE,
+  categoryId UUID REFERENCES categories(id) ON DELETE SET NULL,
   name TEXT NOT NULL,
   description TEXT,
   price DECIMAL(10,2) NOT NULL,
@@ -59,23 +66,7 @@ CREATE TABLE products (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 3. CATEGORIES TABLE
--- =============================================
-CREATE TABLE categories (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  description TEXT,
-  image TEXT,
-  parentId UUID REFERENCES categories(id),
-  orderIndex INTEGER DEFAULT 0,
-  active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- =============================================
--- 4. ORDERS TABLE
--- =============================================
+-- 4. ORDERS
 CREATE TABLE orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   orderNumber TEXT UNIQUE,
@@ -86,19 +77,16 @@ CREATE TABLE orders (
   subtotal DECIMAL(10,2),
   deliveryFee DECIMAL(10,2) DEFAULT 0,
   total DECIMAL(10,2) NOT NULL,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled')),
+  status TEXT DEFAULT 'pending',
   paymentStatus TEXT DEFAULT 'pending',
   paymentMethod TEXT,
   paymentReference TEXT,
   delivery JSONB,
-  notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 5. BANNERS TABLE
--- =============================================
+-- 5. BANNERS
 CREATE TABLE banners (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT,
@@ -109,38 +97,28 @@ CREATE TABLE banners (
   active BOOLEAN DEFAULT true,
   orderIndex INTEGER DEFAULT 0,
   type TEXT DEFAULT 'hero',
-  startDate TIMESTAMPTZ,
-  endDate TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 6. REVIEWS TABLE
--- =============================================
+-- 6. REVIEWS
 CREATE TABLE reviews (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   productId UUID REFERENCES products(id),
   userId UUID REFERENCES users(id),
-  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  rating INTEGER NOT NULL,
   comment TEXT,
-  verified BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 7. SETTINGS TABLE
--- =============================================
+-- 7. SETTINGS
 CREATE TABLE settings (
   id TEXT PRIMARY KEY,
   value JSONB,
-  description TEXT,
   category TEXT DEFAULT 'general',
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 8. EARNINGS TABLE
--- =============================================
+-- 8. EARNINGS
 CREATE TABLE earnings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   userId UUID REFERENCES users(id),
@@ -151,9 +129,7 @@ CREATE TABLE earnings (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 9. SELLERS TABLE
--- =============================================
+-- 9. SELLERS
 CREATE TABLE sellers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   userId UUID REFERENCES users(id) UNIQUE,
@@ -172,9 +148,7 @@ CREATE TABLE sellers (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 10. RIDERS TABLE
--- =============================================
+-- 10. RIDERS
 CREATE TABLE riders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   userId UUID REFERENCES users(id) UNIQUE,
@@ -187,9 +161,7 @@ CREATE TABLE riders (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 11. SYSTEM LOGS TABLE
--- =============================================
+-- 11. SYSTEM_LOGS
 CREATE TABLE system_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   userId UUID REFERENCES users(id),
@@ -197,14 +169,10 @@ CREATE TABLE system_logs (
   entityType TEXT,
   entityId TEXT,
   details JSONB,
-  ipAddress TEXT,
-  userAgent TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 12. NOTIFICATIONS TABLE
--- =============================================
+-- 12. NOTIFICATIONS
 CREATE TABLE notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   userId UUID REFERENCES users(id),
@@ -216,25 +184,7 @@ CREATE TABLE notifications (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 13. PLATFORM STATS TABLE
--- =============================================
-CREATE TABLE platform_stats (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  date DATE NOT NULL UNIQUE,
-  newUsers INTEGER DEFAULT 0,
-  newSellers INTEGER DEFAULT 0,
-  newOrders INTEGER DEFAULT 0,
-  totalRevenue DECIMAL(10,2) DEFAULT 0,
-  totalOrders INTEGER DEFAULT 0,
-  activeUsers INTEGER DEFAULT 0,
-  activeSellers INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- =============================================
--- 14. DELIVERIES TABLE
--- =============================================
+-- 13. DELIVERIES
 CREATE TABLE deliveries (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   orderId UUID REFERENCES orders(id),
@@ -245,14 +195,12 @@ CREATE TABLE deliveries (
   deliveryAddress TEXT,
   deliveryPhone TEXT,
   fee DECIMAL(10,2) DEFAULT 15,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'picked_up', 'in_transit', 'delivered', 'cancelled')),
+  status TEXT DEFAULT 'pending',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 15. ADDRESSES TABLE
--- =============================================
+-- 14. ADDRESSES
 CREATE TABLE addresses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   userId UUID REFERENCES users(id),
@@ -265,9 +213,7 @@ CREATE TABLE addresses (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 16. WISHLIST TABLE
--- =============================================
+-- 15. WISHLIST
 CREATE TABLE wishlist (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   userId UUID REFERENCES users(id),
@@ -276,35 +222,74 @@ CREATE TABLE wishlist (
   UNIQUE(userId, productId)
 );
 
--- =============================================
--- 17. WITHDRAWALS TABLE
--- =============================================
+-- 16. WITHDRAWALS
 CREATE TABLE withdrawals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   sellerId UUID REFERENCES users(id),
   amount DECIMAL(10,2) NOT NULL,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'completed')),
+  status TEXT DEFAULT 'pending',
   method TEXT,
   accountDetails TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- =============================================
--- 18. RIDER WITHDRAWALS TABLE
--- =============================================
+-- 17. RIDER_WITHDRAWALS
 CREATE TABLE rider_withdrawals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   riderId UUID REFERENCES users(id),
   amount DECIMAL(10,2) NOT NULL,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'completed')),
+  status TEXT DEFAULT 'pending',
   method TEXT,
   accountDetails TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- =============================================
--- ENABLE ROW LEVEL SECURITY
+-- FUNCTIONS & TRIGGERS
 -- =============================================
+
+-- 1. HANDLER FOR NEW USERS FROM AUTH
+-- This trigger automatically synchronizes Supabase users into our public profile table
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.users (id, email, name, avatar, role)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    NEW.raw_user_meta_data->>'name',
+    NEW.raw_user_meta_data->>'avatar_url',
+    COALESCE(NEW.raw_user_meta_data->>'role', 'buyer')
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to run handle_new_user() on every signup
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- 2. UPDATED_AT TRIGGER FUNCTION
+-- Automatically updates the 'updated_at' timestamp on record updates
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Adding update triggers to core system tables
+CREATE TRIGGER tr_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER tr_products_updated_at BEFORE UPDATE ON products FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER tr_orders_updated_at BEFORE UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER tr_settings_updated_at BEFORE UPDATE ON settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER tr_sellers_updated_at BEFORE UPDATE ON sellers FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER tr_deliveries_updated_at BEFORE UPDATE ON deliveries FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ENABLE RLS
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
@@ -317,95 +302,77 @@ ALTER TABLE sellers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE riders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE system_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE platform_stats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE deliveries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE addresses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wishlist ENABLE ROW LEVEL SECURITY;
 ALTER TABLE withdrawals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rider_withdrawals ENABLE ROW LEVEL SECURITY;
 
--- =============================================
--- RLS POLICIES - PUBLIC READ
--- =============================================
-CREATE POLICY "Public can read products" ON products FOR SELECT USING (active = true);
-CREATE POLICY "Public can read categories" ON categories FOR SELECT USING (active = true);
-CREATE POLICY "Public can read banners" ON banners FOR SELECT USING (active = true);
-CREATE POLICY "Public can read reviews" ON reviews FOR SELECT USING (true);
+-- RLS POLICIES
+CREATE POLICY "Public products" ON products FOR SELECT USING (active = true);
+CREATE POLICY "Public categories" ON categories FOR SELECT USING (active = true);
+CREATE POLICY "Public banners" ON banners FOR SELECT USING (active = true);
 
--- =============================================
--- RLS POLICIES - AUTHENTICATED USERS
--- =============================================
-CREATE POLICY "Users can read own profile" ON users FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Users can read own orders" ON orders FOR SELECT USING (auth.uid() = userId OR auth.uid() = sellerId OR auth.uid() = riderId);
-CREATE POLICY "Users can read own addresses" ON addresses FOR SELECT USING (auth.uid() = userId);
-CREATE POLICY "Users can manage own addresses" ON addresses FOR ALL USING (auth.uid() = userId);
-CREATE POLICY "Users can manage own wishlist" ON wishlist FOR ALL USING (auth.uid() = userId);
+CREATE POLICY "Users own profile" ON users FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users update profile" ON users FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users orders" ON orders FOR SELECT USING (auth.uid() = userId OR auth.uid() = sellerId OR auth.uid() = riderId);
+CREATE POLICY "Users addresses" ON addresses FOR ALL USING (auth.uid() = userId);
+CREATE POLICY "Users wishlist" ON wishlist FOR ALL USING (auth.uid() = userId);
 
--- =============================================
--- RLS POLICIES - SELLERS
--- =============================================
-CREATE POLICY "Sellers can manage products" ON products FOR ALL USING (
-  EXISTS (SELECT 1 FROM sellers WHERE sellers.userId = auth.uid())
-);
-CREATE POLICY "Sellers can manage orders" ON orders FOR ALL USING (
-  EXISTS (SELECT 1 FROM sellers WHERE sellers.userId = auth.uid() AND sellers.id = orders.sellerId)
-);
-CREATE POLICY "Sellers can manage earnings" ON earnings FOR ALL USING (
-  EXISTS (SELECT 1 FROM sellers WHERE sellers.userId = auth.uid())
-);
-CREATE POLICY "Sellers can manage withdrawals" ON withdrawals FOR ALL USING (auth.uid() = sellerId);
+CREATE POLICY "Sellers products" ON products FOR ALL USING (EXISTS (SELECT 1 FROM sellers WHERE sellers.userId = auth.uid()));
+CREATE POLICY "Sellers orders" ON orders FOR ALL USING (EXISTS (SELECT 1 FROM sellers WHERE sellers.userId = auth.uid() AND sellers.id = orders.sellerId));
 
--- =============================================
--- RLS POLICIES - RIDERS
--- =============================================
-CREATE POLICY "Riders can manage deliveries" ON deliveries FOR ALL USING (auth.uid() = riderId);
-CREATE POLICY "Riders can manage earnings" ON earnings FOR ALL USING (auth.uid() = userId);
-CREATE POLICY "Riders can manage rider_withdrawals" ON rider_withdrawals FOR ALL USING (auth.uid() = riderId);
+CREATE POLICY "Riders deliveries" ON deliveries FOR ALL USING (auth.uid() = riderId);
 
--- =============================================
--- RLS POLICIES - ADMIN/SUPER_ADMIN
--- =============================================
-CREATE POLICY "Admins can read all users" ON users FOR SELECT USING (
-  EXISTS (SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.role IN ('admin', 'super_admin'))
-);
-CREATE POLICY "Admins can manage users" ON users FOR ALL USING (
-  EXISTS (SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.role IN ('admin', 'super_admin'))
-);
-CREATE POLICY "Admins can read all orders" ON orders FOR SELECT USING (
-  EXISTS (SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.role IN ('admin', 'super_admin'))
-);
-CREATE POLICY "Admins can manage orders" ON orders FOR ALL USING (
-  EXISTS (SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.role IN ('admin', 'super_admin'))
-);
-CREATE POLICY "Admins can manage all products" ON products FOR ALL USING (
-  EXISTS (SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.role IN ('admin', 'super_admin'))
-);
-CREATE POLICY "Admins can manage categories" ON categories FOR ALL USING (
-  EXISTS (SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.role IN ('admin', 'super_admin'))
-);
-CREATE POLICY "Admins can manage banners" ON banners FOR ALL USING (
-  EXISTS (SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.role IN ('admin', 'super_admin'))
-);
-CREATE POLICY "Admins can manage settings" ON settings FOR ALL USING (
-  EXISTS (SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.role IN ('admin', 'super_admin'))
-);
-CREATE POLICY "Admins can manage notifications" ON notifications FOR ALL USING (
-  EXISTS (SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.role IN ('admin', 'super_admin'))
-);
-CREATE POLICY "SuperAdmin can manage system_logs" ON system_logs FOR ALL USING (
-  EXISTS (SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.role = 'super_admin')
-);
-CREATE POLICY "Admins can manage sellers" ON sellers FOR ALL USING (
-  EXISTS (SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.role IN ('admin', 'super_admin'))
-);
-CREATE POLICY "Admins can manage riders" ON riders FOR ALL USING (
-  EXISTS (SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.role IN ('admin', 'super_admin'))
-);
+CREATE POLICY "Admins users" ON users FOR ALL USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+CREATE POLICY "Admins orders" ON orders FOR ALL USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+CREATE POLICY "Admins products" ON products FOR ALL USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+CREATE POLICY "Admins categories" ON categories FOR ALL USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+CREATE POLICY "Admins banners" ON banners FOR ALL USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+CREATE POLICY "Admins settings" ON settings FOR ALL USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+CREATE POLICY "Admins notifications" ON notifications FOR ALL USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+CREATE POLICY "SuperAdmin logs" ON system_logs FOR ALL USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'super_admin'));
+CREATE POLICY "Admins sellers" ON sellers FOR ALL USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+CREATE POLICY "Admins riders" ON riders FOR ALL USING (EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
 
--- =============================================
+-- REVIEWS POLICIES
+CREATE POLICY "Public reviews" ON reviews FOR SELECT USING (true);
+CREATE POLICY "Users create reviews" ON reviews FOR INSERT WITH CHECK (auth.uid() = userId);
+CREATE POLICY "Users delete own reviews" ON reviews FOR DELETE USING (auth.uid() = userId);
+
+-- INDEXES FOR PERFORMANCE
+CREATE INDEX idx_products_category ON products(categoryId);
+CREATE INDEX idx_products_seller ON products(sellerId);
+CREATE INDEX idx_products_active ON products(active);
+CREATE INDEX idx_products_featured ON products(featured);
+
+CREATE INDEX idx_orders_user ON orders(userId);
+CREATE INDEX idx_orders_seller ON orders(sellerId);
+CREATE INDEX idx_orders_rider ON orders(riderId);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_orders_number ON orders(orderNumber);
+
+CREATE INDEX idx_categories_parent ON categories(parentId);
+CREATE INDEX idx_reviews_product ON reviews(productId);
+
+CREATE INDEX idx_earnings_user ON earnings(userId);
+CREATE INDEX idx_earnings_status ON earnings(status);
+
+CREATE INDEX idx_deliveries_order ON deliveries(orderId);
+CREATE INDEX idx_deliveries_rider ON deliveries(riderId);
+CREATE INDEX idx_deliveries_status ON deliveries(status);
+
+CREATE INDEX idx_sellers_status ON sellers(status);
+CREATE INDEX idx_sellers_slug ON sellers(storeSlug);
+
+CREATE INDEX idx_riders_available ON riders(available);
+CREATE INDEX idx_riders_user ON riders(userId);
+
+CREATE INDEX idx_system_logs_user ON system_logs(userId);
+CREATE INDEX idx_notifications_user ON notifications(userId);
+CREATE INDEX idx_notifications_read ON notifications(read);
+
 -- DEFAULT SETTINGS
--- =============================================
 INSERT INTO settings (id, value, category) VALUES 
   ('platform', '{"name": "Agriflow", "tagline": "Ghana''s Agricultural Marketplace"}', 'general'),
   ('commission', '{"rate": 10, "minWithdrawal": 50}', 'business'),
@@ -416,54 +383,28 @@ INSERT INTO settings (id, value, category) VALUES
   ('branding', '{"logo": "", "favicon": "", "primaryColor": "#2d5a27", "secondaryColor": "#f59e0b"}', 'branding')
 ON CONFLICT (id) DO NOTHING;
 
--- =============================================
 -- DEFAULT CATEGORIES
--- =============================================
 INSERT INTO categories (name, description, image, orderIndex, active) VALUES
-  ('Vegetables', 'Fresh vegetables from local farms', 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400', 1, true),
-  ('Fruits', 'Fresh tropical fruits', 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400', 2, true),
-  ('Cereals & Grains', 'Rice, maize, beans and more', 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400', 3, true),
-  ('Livestock', 'Cattle, goats, sheep', 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=400', 4, true),
-  ('Poultry', 'Chickens, eggs, ducks', 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400', 5, true),
-  ('Fresh Herbs', 'Basil, mint, parsley and more', 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=400', 6, true),
-  ('Spices', 'Pepper, ginger, turmeric and more', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400', 7, true),
-  ('Seeds', 'Plant seeds and seedlings', 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400', 8, true),
-  ('Farm Tools', 'Agricultural equipment', 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400', 9, true),
-  ('Processed', 'Processed agricultural products', 'https://images.unsplash.com/photo-1606787366850-de6330128bfc?w=400', 10, true)
-ON CONFLICT DO NOTHING;
+  ('Vegetables', 'Fresh vegetables', 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400', 1, true),
+  ('Fruits', 'Fresh fruits', 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400', 2, true),
+  ('Cereals', 'Rice, maize, beans', 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400', 3, true),
+  ('Livestock', 'Cattle, goats', 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=400', 4, true),
+  ('Poultry', 'Chickens, eggs', 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400', 5, true),
+  ('Herbs', 'Fresh herbs', 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=400', 6, true),
+  ('Spices', 'Pepper, ginger', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400', 7, true),
+  ('Seeds', 'Plant seeds', 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400', 8, true),
+  ('Farm Tools', 'Equipment', 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400', 9, true),
+  ('Processed', 'Processed foods', 'https://images.unsplash.com/photo-1606787366850-de6330128bfc?w=400', 10, true);
 
--- =============================================
 -- DEFAULT BANNERS
--- =============================================
 INSERT INTO banners (title, subtitle, image, link, active, orderIndex, type) VALUES
   ('Fresh from Ghana''s Farms', 'Buy directly from local farmers', 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1200', '/products', true, 1, 'hero'),
-  ('Start Selling Today', 'Reach thousands of customers', 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200', '/seller/register', true, 2, 'hero')
-ON CONFLICT DO NOTHING;
+  ('Start Selling Today', 'Reach thousands of customers', 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200', '/seller/register', true, 2, 'hero');
 
--- =============================================
 -- SUPER ADMIN USER
--- =============================================
 INSERT INTO users (email, name, role, created_at) VALUES 
   ('teamgreengen@gmail.com', 'Team Green Gen', 'super_admin', NOW())
 ON CONFLICT (email) DO UPDATE SET role = 'super_admin';
 
--- =============================================
--- NOTE: STORAGE SETUP
--- =============================================
--- Create 'images' bucket in Supabase Dashboard → Storage
--- Then add these policies manually in Storage policies UI:
---
--- Policy 1: "Public can read images"
---   FOR: SELECT
---   TO: public
---   USING: bucket_id = 'images'
---
--- Policy 2: "Authenticated can upload"
---   FOR: INSERT
---   TO: authenticated
---   WITH CHECK: bucket_id = 'images'
---
--- Policy 3: "Authenticated can update"
---   FOR: UPDATE  
---   TO: authenticated
---   USING: bucket_id = 'images'
+-- DONE! Tables created successfully.
+-- Your images bucket already exists - just make sure to add policies in Storage settings.
