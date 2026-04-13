@@ -73,11 +73,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
+    console.log('Login attempt for:', email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
-    if (error) throw error;
+    if (error) {
+      console.error('Auth error:', error);
+      throw error;
+    }
+    
+    console.log('Auth successful, user ID:', data.user.id);
     
     // Robust profile fetch: Fallback to email if ID match fails
     let { data: profile, error: profileError } = await supabase
@@ -86,6 +92,8 @@ export const AuthProvider = ({ children }) => {
       .eq('id', data.user.id)
       .maybeSingle();
     
+    console.log('Profile by ID:', profile, 'error:', profileError);
+    
     // Fallback: If no profile by ID, try finding by email (for pre-synced records)
     if (!profile) {
       const { data: emailProfile } = await supabase
@@ -93,6 +101,8 @@ export const AuthProvider = ({ children }) => {
         .select('*')
         .eq('email', data.user.email)
         .maybeSingle();
+      
+      console.log('Profile by email:', emailProfile);
       
       if (emailProfile) {
         // Correct the ID mapping
@@ -105,9 +115,10 @@ export const AuthProvider = ({ children }) => {
     }
 
     if (!profile) {
-      console.warn('No profile found for authenticated user');
+      console.warn('No profile found - using auth metadata');
       // Try to get role from auth metadata
       const role = data.user.user_metadata?.role || 'buyer';
+      console.log('Role from metadata:', role);
       const userWithRole = { ...data.user, role };
       setUserData(userWithRole);
       return userWithRole;
@@ -115,6 +126,7 @@ export const AuthProvider = ({ children }) => {
 
     // Ensure role is always set - from profile or auth metadata
     const role = profile.role || data.user.user_metadata?.role || 'buyer';
+    console.log('Final role:', role);
     const userWithProfile = { ...data.user, ...profile, role };
     setUserData(userWithProfile);
     return userWithProfile;

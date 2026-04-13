@@ -20,14 +20,16 @@ const SuperAdminLogin = () => {
     setLoading(true);
 
     try {
-      await login(email, password);
+      const user = await login(email, password);
       
       // Wait for state update
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const role = userData?.role;
+      console.log('Login successful, user:', user, 'role:', role);
       
       if (role === 'super_admin') {
+        console.log('Redirecting to /superadmin');
         navigate('/superadmin');
       } else if (role === 'admin') {
         setError('Please use the Admin Login page.');
@@ -35,6 +37,7 @@ const SuperAdminLogin = () => {
         setError('Access denied. Super Admin only.');
       }
     } catch (err) {
+      console.error('Login error:', err);
       setError(err.message || 'Failed to login');
     } finally {
       setLoading(false);
@@ -127,6 +130,7 @@ const SuperAdminLogin = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="Enter super admin email"
+                autoComplete="email"
               />
             </div>
 
@@ -138,6 +142,7 @@ const SuperAdminLogin = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Enter secure password"
+                autoComplete="current-password"
               />
             </div>
 
