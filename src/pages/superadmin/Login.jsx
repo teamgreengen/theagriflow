@@ -21,10 +21,13 @@ const SuperAdminLogin = () => {
 
     try {
       const user = await login(email, password);
+      // Use returned user's role (setUserData is called in login function)
+      const role = user?.role;
+      
       // Explicitly check for super_admin role
-      if (user && user.role === 'super_admin') {
+      if (role === 'super_admin') {
         navigate('/superadmin');
-      } else if (user && user.role === 'admin') {
+      } else if (role === 'admin') {
         setError('Please use the Admin Login page for standard admin access.');
       } else {
         setError('Access denied. Super Admin only.');

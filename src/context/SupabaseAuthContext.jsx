@@ -106,10 +106,16 @@ export const AuthProvider = ({ children }) => {
 
     if (!profile) {
       console.warn('No profile found for authenticated user');
-      return data.user;
+      // Try to get role from auth metadata
+      const role = data.user.user_metadata?.role;
+      const userWithRole = { ...data.user, role };
+      setUserData(userWithRole);
+      return userWithRole;
     }
 
-    return { ...data.user, ...profile };
+    const userWithProfile = { ...data.user, ...profile };
+    setUserData(userWithProfile);
+    return userWithProfile;
   };
 
   const logout = async () => {
