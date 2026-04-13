@@ -59,7 +59,7 @@ const Navbar = () => {
 
           <div className="nav-actions">
             {currentUser ? (
-              <div className="nav-item account-item">
+              <div className="nav-item account-item logged-in" onMouseEnter={() => setMenuOpen(true)} onMouseLeave={() => setMenuOpen(false)}>
                 <span className="nav-icon">👤</span>
                 <div className="nav-text">
                   <small>Hello, {userData?.name?.split(' ')[0] || 'User'}</small>
