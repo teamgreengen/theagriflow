@@ -85,15 +85,16 @@ export const AuthProvider = ({ children }) => {
       setTimeout(() => reject(new Error('Login request timeout - check network')), 15000);
     });
     
-    let { data, error };
+    let result;
     
     try {
-      const result = await Promise.race([authPromise, timeoutPromise]);
-      ({ data, error } = result);
+      result = await Promise.race([authPromise, timeoutPromise]);
     } catch (raceError) {
       console.error('Race error:', raceError);
       throw raceError;
     }
+    
+    const { data, error } = result;
     
     if (error) {
       console.error('Auth error:', error);
