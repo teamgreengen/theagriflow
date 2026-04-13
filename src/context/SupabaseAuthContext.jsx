@@ -73,11 +73,27 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    console.log('Login attempt for:', email);
-    const { data, error } = await supabase.auth.signInWithPassword({
+    console.log('Login attempt for:', email, 'password length:', password?.length);
+    
+    // Add timeout wrapper
+    const authPromise = supabase.auth.signInWithPassword({
       email,
       password
     });
+    
+    const timeoutPromise = new Promise((resolve, reject) => {
+      setTimeout(() => reject(new Error('Login request timeout - check network')), 15000);
+    });
+    
+    let { data, error };
+    
+    try {
+      const result = await Promise.race([authPromise, timeoutPromise]);
+      ({ data, error } = result);
+    } catch (raceError) {
+      console.error('Race error:', raceError);
+      throw raceError;
+    }
     
     if (error) {
       console.error('Auth error:', error);
