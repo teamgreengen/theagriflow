@@ -1,218 +1,122 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import supabase from '../config/supabase';
-import { ROLES } from '../config/supabase';
 
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const signup = async (email, password, name, role, additionalData = {}) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { name, role }
-      }
-    });
-    if (error) throw error;
-    
-    const user = data.user;
-    if (!user) throw new Error('Failed to create user');
-
-    const userDoc = {
-      id: user.id,
-      uid: user.id,
-      email,
-      name,
-      role,
-      created_at: new Date().toISOString(),
-      ...additionalData
-    };
-
-    const { error: insertError } = await supabase
-      .from('users')
-      .insert(userDoc);
-    if (insertError) throw insertError;
-
-    if (role === ROLES.SELLER) {
-      const { error: sellerError } = await supabase
-        .from('sellers')
-        .insert({
-          userId: user.id,
-          storeName: additionalData.storeName || '',
-          description: additionalData.description || '',
-          verified: false,
-          rating: 0,
-          totalSales: 0,
-          created_at: new Date().toISOString()
-        });
-      if (sellerError) throw sellerError;
-    }
-
-    if (role === ROLES.RIDER) {
-      const { error: riderError } = await supabase
-        .from('riders')
-        .insert({
-          userId: user.id,
-          available: true,
-          totalDeliveries: 0,
-          rating: 0,
-          earnings: 0,
-          created_at: new Date().toISOString()
-        });
-      if (riderError) throw riderError;
-    }
-
-    setUserData(userDoc);
-    return user;
-  };
-
   const login = async (email, password) => {
-    console.log('Login attempt for:', email, 'password length:', password?.length);
+    console.log('Login attempt:', email);
     
-    // Add timeout wrapper
-    const authPromise = supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
     
-    const timeoutPromise = new Promise((resolve, reject) => {
-      setTimeout(() => reject(new Error('Login request timeout - check network')), 15000);
-    });
-    
-    let result;
-    
-    try {
-      result = await Promise.race([authPromise, timeoutPromise]);
-    } catch (raceError) {
-      console.error('Race error:', raceError);
-      throw raceError;
-    }
-    
-    const { data, error } = result;
-    
     if (error) {
-      console.error('Auth error:', error);
-      throw error;
+      console.error('Login error:', error.message);
+      throw new Error(error.message);
     }
     
-    console.log('Auth successful, user ID:', data?.user?.id);
+    console.log('Auth success, user:', data.user.id);
     
-    // Robust profile fetch: Fallback to email if ID match fails
-    let { data: profile, error: profileError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', data.user.id)
-      .maybeSingle();
+    const userInfo = { id: data.user.id, email: data.user.email };
+    setUser(userInfo);
+    setUserData(userInfo);
     
-    console.log('Profile by ID:', profile, 'error:', profileError);
-    
-    // Fallback: If no profile by ID, try finding by email (for pre-synced records)
-    if (!profile) {
-      const { data: emailProfile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', data.user.email)
-        .maybeSingle();
-      
-      console.log('Profile by email:', emailProfile);
-      
-      if (emailProfile) {
-        // Correct the ID mapping
-        await supabase
-          .from('users')
-          .update({ id: data.user.id })
-          .eq('email', data.user.email);
-        profile = { ...emailProfile, id: data.user.id };
-      }
-    }
-
-    if (!profile) {
-      console.warn('No profile found - using auth metadata');
-      // Try to get role from auth metadata
-      const role = data.user.user_metadata?.role || 'buyer';
-      console.log('Role from metadata:', role);
-      const userWithRole = { ...data.user, role };
-      setUserData(userWithRole);
-      return userWithRole;
-    }
-
-    // Ensure role is always set - from profile or auth metadata
-    const role = profile.role || data.user.user_metadata?.role || 'buyer';
-    console.log('Final role:', role);
-    const userWithProfile = { ...data.user, ...profile, role };
-    setUserData(userWithProfile);
-    return userWithProfile;
+    return userInfo;
   };
 
   const logout = async () => {
-    setUserData(null);
     await supabase.auth.signOut();
+    setUser(null);
+    setUserData(null);
   };
 
   useEffect(() => {
-    let mounted = true;
-
-    const initAuth = async () => {
+    const init = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (mounted && session?.user) {
-          setCurrentUser(session.user);
+        if (session?.user) {
+          setUser({ id: session.user.id, email: session.user.email });
+          
           const { data } = await supabase
             .from('users')
             .select('*')
             .eq('id', session.user.id)
             .single();
-          if (mounted) setUserData(data);
+            
+          if (data) {
+            setUserData(data);
+          } else {
+            const role = session.user.user_metadata?.role || 'buyer';
+            setUserData({ id: session.user.id, email: session.user.email, role });
+          }
         }
       } catch (err) {
         console.error('Auth init error:', err);
       } finally {
-        if (mounted) setLoading(false);
+        setLoading(false);
       }
     };
 
-    initAuth();
+    init();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-      
-      setCurrentUser(session?.user || null);
-      
-      if (session?.user) {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setUser({ id: session.user.id, email: session.user.email });
+        
         const { data } = await supabase
           .from('users')
           .select('*')
           .eq('id', session.user.id)
           .single();
-        
-        setUserData(data);
-      } else {
+          
+        if (data) {
+          setUserData(data);
+        } else {
+          const role = session.user.user_metadata?.role || 'buyer';
+          setUserData({ id: session.user.id, email: session.user.email, role });
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
         setUserData(null);
       }
       setLoading(false);
     });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const value = {
-    currentUser,
+    user,
     userData,
     loading,
-    signup,
     login,
     logout,
-    ROLES
+    refreshUser: async () => {
+      if (user) {
+        const { data } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        if (data) setUserData(data);
+      }
+    },
+    ROLES: {
+      BUYER: 'buyer',
+      SELLER: 'seller',
+      ADMIN: 'admin',
+      SUPER_ADMIN: 'super_admin',
+      RIDER: 'rider'
+    }
   };
 
   return (
@@ -221,3 +125,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export default AuthContext;

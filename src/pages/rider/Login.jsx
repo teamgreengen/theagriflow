@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/SupabaseAuthContext';
+import supabase from '../../config/supabase';
 import '../auth/Auth.css';
 
 const RiderLogin = () => {
@@ -8,7 +9,7 @@ const RiderLogin = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, userData } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -18,9 +19,15 @@ const RiderLogin = () => {
 
     try {
       await login(email, password);
-      await new Promise(resolve => setTimeout(resolve, 50));
       
-      const role = userData?.role;
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('email', email)
+        .single();
+      
+      const role = profile?.role;
+      
       if (role === 'rider') {
         navigate('/rider');
       } else {
@@ -57,7 +64,7 @@ const RiderLogin = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="Enter your rider email"
+                placeholder="Enter rider email"
               />
             </div>
 
@@ -68,21 +75,17 @@ const RiderLogin = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="Enter your password"
+                placeholder="Enter password"
               />
             </div>
 
             <button type="submit" disabled={loading} className="auth-btn rider-btn">
-              {loading ? 'Signing in...' : 'Sign In as Rider'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
           <p className="auth-link">
-            New rider? <Link to="/rider/register">Register here</Link>
-          </p>
-
-          <p className="auth-link">
-            Are you a: <Link to="/login">Buyer</Link> | <Link to="/seller/login">Seller</Link> | <Link to="/admin/login">Admin</Link>
+            <Link to="/login">Buyer</Link> | <Link to="/rider/register">Register</Link> | <Link to="/superadmin/login">Super Admin</Link>
           </p>
         </div>
       </div>

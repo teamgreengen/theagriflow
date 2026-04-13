@@ -11,7 +11,7 @@ const SuperAdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetSent, setResetSent] = useState(false);
-  const { login, userData } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -19,29 +19,26 @@ const SuperAdminLogin = () => {
     setError('');
     setLoading(true);
 
-    console.log('Starting login process...');
-    
     try {
-      console.log('Calling login function...');
-      const user = await login(email, password);
-      console.log('Login function returned:', user);
+      await login(email, password);
       
-      // Wait for state update
-      await new Promise(resolve => setTimeout(resolve, 100));
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('email', email)
+        .single();
       
-      const role = userData?.role;
-      console.log('After wait, userData:', userData, 'role:', role);
+      const role = profile?.role;
       
       if (role === 'super_admin') {
         navigate('/superadmin');
       } else if (role === 'admin') {
-        setError('Please use the Admin Login page.');
+        navigate('/admin');
       } else {
         setError('Access denied. Super Admin only.');
       }
     } catch (err) {
-      console.error('Login error caught:', err);
-      setError(err.message || 'Failed to login. Check console for details.');
+      setError(err.message || 'Failed to login');
     } finally {
       setLoading(false);
     }
@@ -77,20 +74,19 @@ const SuperAdminLogin = () => {
               <span className="auth-badge super-admin">Super Admin</span>
             </div>
             <h2>Reset Password</h2>
-            <p className="auth-subtitle">Enter your super admin email to receive a reset link</p>
+            <p className="auth-subtitle">Enter your super admin email</p>
 
             {error && <div className="auth-error">{error}</div>}
-            {resetSent && <div className="auth-success">Password reset link sent to your email!</div>}
+            {resetSent && <div className="auth-success">Password reset link sent!</div>}
 
             <form onSubmit={handleForgotPassword}>
               <div className="form-group">
-                <label>Super Admin Email</label>
+                <label>Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="Enter super admin email"
                 />
               </div>
 
@@ -100,7 +96,7 @@ const SuperAdminLogin = () => {
             </form>
 
             <p className="auth-link">
-              Remember password? <Link to="/superadmin/login" onClick={() => setShowForgotPassword(false)}>Sign In</Link>
+              <Link to="/superadmin/login" onClick={() => setShowForgotPassword(false)}>Sign In</Link>
             </p>
           </div>
         </div>
@@ -126,14 +122,13 @@ const SuperAdminLogin = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Super Admin Email</label>
+              <label>Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="Enter super admin email"
-                autoComplete="email"
               />
             </div>
 
@@ -144,8 +139,7 @@ const SuperAdminLogin = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="Enter secure password"
-                autoComplete="current-password"
+                placeholder="Enter password"
               />
             </div>
 
@@ -154,12 +148,12 @@ const SuperAdminLogin = () => {
             </button>
 
             <button type="submit" disabled={loading} className="auth-btn super-admin-btn">
-              {loading ? 'Authenticating...' : 'Sign In to Root Console'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
           <p className="auth-link">
-            Standard Access: <Link to="/admin/login">Admin</Link> | <Link to="/seller/login">Seller</Link> | <Link to="/login">Buyer</Link>
+            <Link to="/admin/login">Admin</Link> | <Link to="/login">Buyer</Link>
           </p>
         </div>
       </div>
