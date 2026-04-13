@@ -95,6 +95,26 @@
   font-size: 14px;
 }
 
+.auth-success {
+  background: #dcfce7;
+  color: #16a34a;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.forgot-password {
+  background: none;
+  border: none;
+  color: var(--primary-color, #2d5a27);
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  padding: 0;
+  text-decoration: underline;
+}
+
 .form-group {
   margin-bottom: 18px;
 }

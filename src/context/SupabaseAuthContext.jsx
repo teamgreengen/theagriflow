@@ -78,7 +78,38 @@ export const AuthProvider = ({ children }) => {
       password
     });
     if (error) throw error;
-    return data.user;
+    
+    // Robust profile fetch: Fallback to email if ID match fails
+    let { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', data.user.id)
+      .maybeSingle();
+    
+    // Fallback: If no profile by ID, try finding by email (for pre-synced records)
+    if (!profile) {
+      const { data: emailProfile } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', data.user.email)
+        .maybeSingle();
+      
+      if (emailProfile) {
+        // Correct the ID mapping
+        await supabase
+          .from('users')
+          .update({ id: data.user.id })
+          .eq('email', data.user.email);
+        profile = { ...emailProfile, id: data.user.id };
+      }
+    }
+
+    if (!profile) {
+      console.warn('No profile found for authenticated user');
+      return data.user;
+    }
+
+    return { ...data.user, ...profile };
   };
 
   const logout = async () => {
