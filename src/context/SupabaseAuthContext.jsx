@@ -107,13 +107,15 @@ export const AuthProvider = ({ children }) => {
     if (!profile) {
       console.warn('No profile found for authenticated user');
       // Try to get role from auth metadata
-      const role = data.user.user_metadata?.role;
+      const role = data.user.user_metadata?.role || 'buyer';
       const userWithRole = { ...data.user, role };
       setUserData(userWithRole);
       return userWithRole;
     }
 
-    const userWithProfile = { ...data.user, ...profile };
+    // Ensure role is always set - from profile or auth metadata
+    const role = profile.role || data.user.user_metadata?.role || 'buyer';
+    const userWithProfile = { ...data.user, ...profile, role };
     setUserData(userWithProfile);
     return userWithProfile;
   };

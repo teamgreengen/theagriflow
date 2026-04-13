@@ -11,7 +11,7 @@ const SuperAdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetSent, setResetSent] = useState(false);
-  const { login } = useAuth();
+  const { login, userData } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -20,15 +20,17 @@ const SuperAdminLogin = () => {
     setLoading(true);
 
     try {
-      const user = await login(email, password);
-      // Use returned user's role (setUserData is called in login function)
-      const role = user?.role;
+      await login(email, password);
       
-      // Explicitly check for super_admin role
+      // Wait for state update
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      const role = userData?.role;
+      
       if (role === 'super_admin') {
         navigate('/superadmin');
       } else if (role === 'admin') {
-        setError('Please use the Admin Login page for standard admin access.');
+        setError('Please use the Admin Login page.');
       } else {
         setError('Access denied. Super Admin only.');
       }

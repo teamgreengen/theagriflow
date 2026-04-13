@@ -12,7 +12,7 @@ const Login = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
-  const { login } = useAuth();
+  const { login, userData } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -21,10 +21,13 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const user = await login(email, password);
+      await login(email, password);
+      await new Promise(resolve => setTimeout(resolve, 50));
       
-      // Redirect based on role
-      switch (user?.role) {
+      const role = userData?.role;
+      
+      // Redirect based on role - only buyer goes to frontend
+      switch (role) {
         case 'super_admin':
           navigate('/superadmin');
           break;

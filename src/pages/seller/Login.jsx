@@ -8,7 +8,7 @@ const SellerLogin = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, userData } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -17,8 +17,11 @@ const SellerLogin = () => {
     setLoading(true);
 
     try {
-      const user = await login(email, password);
-      if (user && user.role === 'seller') {
+      await login(email, password);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      const role = userData?.role;
+      if (role === 'seller') {
         navigate('/seller');
       } else {
         setError('Access denied. Sellers only.');

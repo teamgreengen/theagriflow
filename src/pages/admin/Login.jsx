@@ -8,7 +8,7 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, userData } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -17,9 +17,12 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const user = await login(email, password);
-      if (user && (user.role === 'admin' || user.role === 'super_admin')) {
-        navigate(user.role === 'super_admin' ? '/superadmin' : '/admin');
+      await login(email, password);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      const role = userData?.role;
+      if (role === 'admin' || role === 'super_admin') {
+        navigate(role === 'super_admin' ? '/superadmin' : '/admin');
       } else {
         setError('Access denied. Admin only.');
       }

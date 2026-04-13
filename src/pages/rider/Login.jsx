@@ -8,7 +8,7 @@ const RiderLogin = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, userData } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -17,8 +17,11 @@ const RiderLogin = () => {
     setLoading(true);
 
     try {
-      const user = await login(email, password);
-      if (user && user.role === 'rider') {
+      await login(email, password);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      const role = userData?.role;
+      if (role === 'rider') {
         navigate('/rider');
       } else {
         setError('Access denied. Riders only.');
