@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/SupabaseAuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import ThemeProvider from './context/ThemeContext';
@@ -60,10 +60,10 @@ import Footer from './components/Footer';
 import './App.css';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { currentUser, userData, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
 
   if (loading) return <div className="loading">Loading...</div>;
-  if (!currentUser) return <Navigate to="/login" />;
+  if (!user) return <Navigate to="/login" />;
   
   if (allowedRoles && !allowedRoles.includes(userData?.role)) {
     return <Navigate to="/" />;

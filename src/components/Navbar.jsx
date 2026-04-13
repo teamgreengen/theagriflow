@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { currentUser, userData, logout } = useAuth();
+  const { user, userData, logout } = useAuth();
   const { getCartCount } = useCart();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -58,11 +58,11 @@ const Navbar = () => {
           </form>
 
           <div className="nav-actions">
-            {currentUser ? (
+            {user ? (
               <div className="nav-item account-item logged-in">
                 <span className="nav-icon">👤</span>
                 <div className="nav-text">
-                  <small>Hello, {userData?.name?.split(' ')[0] || 'User'}</small>
+                  <small>Hello, {userData?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'User'}</small>
                   <strong>Account</strong>
                 </div>
                 <div className="account-dropdown">
@@ -120,7 +120,7 @@ const Navbar = () => {
         <Link to="/seller/register">Become a Seller</Link>
         <Link to="/rider/register">Deliver with Us</Link>
         <div className="mobile-divider"></div>
-        {currentUser ? (
+        {user ? (
           <>
             <Link to={getDashboardLink()}>Dashboard</Link>
             <Link to="/my-orders">My Orders</Link>
