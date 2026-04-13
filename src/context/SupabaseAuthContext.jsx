@@ -78,12 +78,13 @@ export const AuthProvider = ({ children }) => {
       email,
       password
     });
+    
     if (error) {
       console.error('Auth error:', error);
       throw error;
     }
     
-    console.log('Auth successful, user ID:', data.user.id);
+    console.log('Auth successful, user ID:', data?.user?.id);
     
     // Robust profile fetch: Fallback to email if ID match fails
     let { data: profile, error: profileError } = await supabase

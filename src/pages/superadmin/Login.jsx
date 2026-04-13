@@ -19,17 +19,20 @@ const SuperAdminLogin = () => {
     setError('');
     setLoading(true);
 
+    console.log('Starting login process...');
+    
     try {
+      console.log('Calling login function...');
       const user = await login(email, password);
+      console.log('Login function returned:', user);
       
       // Wait for state update
       await new Promise(resolve => setTimeout(resolve, 100));
       
       const role = userData?.role;
-      console.log('Login successful, user:', user, 'role:', role);
+      console.log('After wait, userData:', userData, 'role:', role);
       
       if (role === 'super_admin') {
-        console.log('Redirecting to /superadmin');
         navigate('/superadmin');
       } else if (role === 'admin') {
         setError('Please use the Admin Login page.');
@@ -37,8 +40,8 @@ const SuperAdminLogin = () => {
         setError('Access denied. Super Admin only.');
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err.message || 'Failed to login');
+      console.error('Login error caught:', err);
+      setError(err.message || 'Failed to login. Check console for details.');
     } finally {
       setLoading(false);
     }
