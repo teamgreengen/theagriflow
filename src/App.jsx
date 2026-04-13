@@ -6,6 +6,7 @@ import ThemeProvider from './context/ThemeContext';
 
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import ResetPassword from './pages/auth/ResetPassword';
 import SellerLogin from './pages/seller/Login';
 import SellerRegister from './pages/seller/Register';
 import AdminLogin from './pages/admin/Login';
@@ -120,6 +121,7 @@ function App() {
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 
                 <Route path="/seller/login" element={<SellerLogin />} />
                 <Route path="/seller/register" element={<SellerRegister />} />
