@@ -109,6 +109,7 @@ const Navbar = () => {
         <div className="nav-links">
           <Link to="/products">All Products</Link>
           <Link to="/market-pricing">Market Prices</Link>
+          <Link to="/get-started">Get Started</Link>
           <Link to="/seller/register">Become a Seller</Link>
           <Link to="/rider/register">Deliver with Us</Link>
         </div>
@@ -117,6 +118,7 @@ const Navbar = () => {
       <div className={`mobile-menu ${menuOpen ? 'active' : ''}`}>
         <Link to="/products">Products</Link>
         <Link to="/market-pricing">Market Prices</Link>
+        <Link to="/get-started">Get Started</Link>
         <Link to="/seller/register">Become a Seller</Link>
         <Link to="/rider/register">Deliver with Us</Link>
         <div className="mobile-divider"></div>

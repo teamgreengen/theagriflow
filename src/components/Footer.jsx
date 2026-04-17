@@ -9,7 +9,7 @@ const Footer = () => {
           <div className="footer-logo">
             <img src="/logo-3.png" alt="Agriflow" />
           </div>
-          <p>Ghana's premier agricultural marketplace.</p>
+          <p>Ghana's premier agricultural marketplace connecting farmers with buyers nationwide.</p>
           <div className="social-links">
             <a href="#">Facebook</a>
             <a href="#">Twitter</a>
@@ -18,23 +18,30 @@ const Footer = () => {
         </div>
 
         <div className="footer-section">
-          <h3>Quick Links</h3>
-          <Link to="/">Home</Link>
-          <Link to="/products">Products</Link>
-          <Link to="/market">Market Pricing</Link>
-          <Link to="/register">Become a Seller</Link>
+          <h3>Get Started</h3>
+          <Link to="/get-started">All Options</Link>
+          <Link to="/register">Buyer Account</Link>
+          <Link to="/seller/register">Become a Seller</Link>
+          <Link to="/rider/register">Become a Rider</Link>
+          <Link to="/admin/register">Admin Access</Link>
         </div>
 
         <div className="footer-section">
-          <h3>Categories</h3>
-          <a href="#">Vegetables</a>
-          <a href="#">Fruits</a>
-          <a href="#">Cereals & Grains</a>
-          <a href="#">Livestock</a>
-          <a href="#">Farm Equipment</a>
+          <h3>Portal Login</h3>
+          <Link to="/login">Buyer Login</Link>
+          <Link to="/seller/login">Seller Login</Link>
+          <Link to="/rider/login">Rider Login</Link>
+          <Link to="/admin/login">Admin Login</Link>
+          <Link to="/superadmin/login">Super Admin</Link>
         </div>
 
-
+        <div className="footer-section">
+          <h3>Quick Links</h3>
+          <Link to="/products">Products</Link>
+          <Link to="/market-pricing">Market Prices</Link>
+          <Link to="/my-orders">Track Order</Link>
+          <Link to="/">Home</Link>
+        </div>
 
         <div className="footer-section">
           <h3>Contact Us</h3>
@@ -45,7 +52,7 @@ const Footer = () => {
       </div>
 
       <div className="footer-bottom">
-        <p>&copy; 2026 Agriflow. All rights reserved.</p>
+        <p>&copy; 2026 Agriflow. All rights reserved. | <Link to="/admin/login">Admin</Link></p>
       </div>
     </footer>
   );

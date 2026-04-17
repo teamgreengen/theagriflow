@@ -10,9 +10,8 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
-  const { login, userData } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -22,11 +21,15 @@ const Login = () => {
 
     try {
       await login(email, password);
-      await new Promise(resolve => setTimeout(resolve, 50));
       
-      const role = userData?.role;
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('email', email)
+        .single();
       
-      // Redirect based on role - only buyer goes to frontend
+      const role = profile?.role;
+      
       switch (role) {
         case 'super_admin':
           navigate('/superadmin');
@@ -54,7 +57,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/reset-password'
       });
       if (error) throw error;
@@ -73,7 +76,8 @@ const Login = () => {
           <div className="auth-card">
             <div className="auth-header">
               <Link to="/" className="auth-logo">
-                <img src="/logo-2.png" alt="Agriflow" className="auth-logo-img" />
+                <span className="logo-text">agri</span>
+                <span className="logo-highlight">flow</span>
               </Link>
             </div>
             <h2>Reset Password</h2>
@@ -87,8 +91,8 @@ const Login = () => {
                 <label>Email</label>
                 <input
                   type="email"
-                  value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="Enter your email"
                 />
@@ -114,11 +118,12 @@ const Login = () => {
         <div className="auth-card">
           <div className="auth-header">
             <Link to="/" className="auth-logo">
-              <img src="/logo-2.png" alt="Agriflow" className="auth-logo-img" />
+              <span className="logo-text">agri</span>
+              <span className="logo-highlight">flow</span>
             </Link>
           </div>
           <h2>Welcome Back</h2>
-          <p className="auth-subtitle">Sign in to your Agriflow account</p>
+          <p className="auth-subtitle">Sign in to your buyer account</p>
 
           {error && <div className="auth-error">{error}</div>}
 
@@ -155,16 +160,26 @@ const Login = () => {
           </form>
 
           <p className="auth-link">
-            Don't have an account? <Link to="/register">Register here</Link>
+            Don't have an account? <Link to="/register">Create one here</Link>
           </p>
-          
+
           <div className="auth-portals">
             <p>Are you a:</p>
             <div className="portal-links">
               <Link to="/seller/login">Seller</Link>
-              <Link to="/admin/login">Admin</Link>
               <Link to="/rider/login">Rider</Link>
+              <Link to="/admin/login">Admin</Link>
               <Link to="/superadmin/login">Super Admin</Link>
+            </div>
+          </div>
+
+          <div className="auth-register-options">
+            <p>New to Agriflow?</p>
+            <div className="register-links">
+              <Link to="/register" className="register-link">Create Buyer Account</Link>
+              <Link to="/seller/register" className="register-link">Become a Seller</Link>
+              <Link to="/rider/register" className="register-link">Become a Rider</Link>
+              <Link to="/admin/register" className="register-link">Request Admin Access</Link>
             </div>
           </div>
         </div>

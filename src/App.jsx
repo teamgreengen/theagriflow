@@ -7,9 +7,11 @@ import ThemeProvider from './context/ThemeContext';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ResetPassword from './pages/auth/ResetPassword';
+import GetStarted from './pages/auth/GetStarted';
 import SellerLogin from './pages/seller/Login';
 import SellerRegister from './pages/seller/Register';
 import AdminLogin from './pages/admin/Login';
+import AdminRegister from './pages/admin/Register';
 import RiderLogin from './pages/rider/Login';
 import RiderRegister from './pages/rider/Register';
 import SuperAdminLogin from './pages/superadmin/Login';
@@ -122,10 +124,12 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/get-started" element={<GetStarted />} />
                 
                 <Route path="/seller/login" element={<SellerLogin />} />
                 <Route path="/seller/register" element={<SellerRegister />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin/register" element={<AdminRegister />} />
                 <Route path="/rider/login" element={<RiderLogin />} />
                 <Route path="/rider/register" element={<RiderRegister />} />
                 <Route path="/superadmin/login" element={<SuperAdminLogin />} />
