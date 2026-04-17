@@ -50,6 +50,10 @@ const AdminRegister = () => {
 
       if (signUpError) throw signUpError;
 
+      if (!data.user) {
+        throw new Error('Failed to create user');
+      }
+
       const { error: insertError } = await supabase
         .from('users')
         .insert({

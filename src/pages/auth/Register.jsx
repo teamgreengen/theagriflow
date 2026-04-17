@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/SupabaseAuthContext';
+import supabase from '../../config/supabase';
 import './Auth.css';
 
 const Register = () => {
@@ -9,15 +9,10 @@ const Register = () => {
     email: '',
     phone: '',
     password: '',
-    confirmPassword: '',
-    role: 'buyer',
-    ghanaCardNumber: '',
-    storeName: '',
-    description: ''
+    confirmPassword: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -39,22 +34,34 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const additionalData = {};
-      
-      if (formData.role === 'seller') {
-        additionalData.storeName = formData.storeName;
-        additionalData.description = formData.description;
-        additionalData.ghanaCardNumber = formData.ghanaCardNumber;
-        additionalData.phone = formData.phone;
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: { name: formData.name, role: 'buyer' }
+        }
+      });
+
+      if (signUpError) throw signUpError;
+
+      if (!data.user) {
+        throw new Error('Failed to create user');
       }
 
-      if (formData.role === 'rider') {
-        additionalData.ghanaCardNumber = formData.ghanaCardNumber;
-        additionalData.phone = formData.phone;
-      }
+      const { error: insertError } = await supabase
+        .from('users')
+        .insert({
+          id: data.user.id,
+          email: formData.email,
+          name: formData.name,
+          role: 'buyer',
+          phone: formData.phone,
+          status: 'active'
+        });
 
-      await signup(formData.email, formData.password, formData.name, formData.role, additionalData);
-      navigate('/');
+      if (insertError) console.error('User insert error:', insertError);
+
+      navigate('/login');
     } catch (err) {
       setError(err.message || 'Failed to create account');
     } finally {
@@ -66,6 +73,12 @@ const Register = () => {
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-card">
+          <div className="auth-header">
+            <Link to="/" className="auth-logo">
+              <span className="logo-text">agri</span>
+              <span className="logo-highlight">flow</span>
+            </Link>
+          </div>
           <h2>Create Account</h2>
           <p className="auth-subtitle">Join Agriflow - Ghana's Agricultural Marketplace</p>
 
@@ -109,55 +122,6 @@ const Register = () => {
             </div>
 
             <div className="form-group">
-              <label>Account Type</label>
-              <select name="role" value={formData.role} onChange={handleChange}>
-                <option value="buyer">Buyer</option>
-                <option value="seller">Seller (Farmer/Trader)</option>
-                <option value="rider">Delivery Rider</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-
-            {(formData.role === 'seller' || formData.role === 'rider') && (
-              <div className="form-group">
-                <label>Ghana Card Number (for verification)</label>
-                <input
-                  type="text"
-                  name="ghanaCardNumber"
-                  value={formData.ghanaCardNumber}
-                  onChange={handleChange}
-                  placeholder="Enter your Ghana Card number"
-                />
-              </div>
-            )}
-
-            {formData.role === 'seller' && (
-              <>
-                <div className="form-group">
-                  <label>Store Name</label>
-                  <input
-                    type="text"
-                    name="storeName"
-                    value={formData.storeName}
-                    onChange={handleChange}
-                    required
-                    placeholder="Your farm or store name"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Description</label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="Brief description of your products"
-                    rows="3"
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="form-group">
               <label>Password</label>
               <input
                 type="password"
@@ -166,6 +130,7 @@ const Register = () => {
                 onChange={handleChange}
                 required
                 placeholder="Create a password"
+                minLength={6}
               />
             </div>
 
@@ -178,17 +143,27 @@ const Register = () => {
                 onChange={handleChange}
                 required
                 placeholder="Confirm your password"
+                minLength={6}
               />
             </div>
 
             <button type="submit" disabled={loading} className="auth-btn">
-              {loading ? 'Creating Account...' : 'Register'}
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 
           <p className="auth-link">
             Already have an account? <Link to="/login">Sign in</Link>
           </p>
+
+          <div className="auth-portals">
+            <p>Want to sell or deliver?</p>
+            <div className="portal-links">
+              <Link to="/seller/register">Become a Seller</Link>
+              <Link to="/rider/register">Become a Rider</Link>
+              <Link to="/admin/register">Request Admin Access</Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>

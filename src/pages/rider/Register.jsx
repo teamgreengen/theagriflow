@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/SupabaseAuthContext';
+import supabase from '../../config/supabase';
 import '../auth/Auth.css';
 
 const RiderRegister = () => {
@@ -10,12 +10,10 @@ const RiderRegister = () => {
     phone: '',
     password: '',
     confirmPassword: '',
-    ghanaCardNumber: '',
     vehicleType: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -37,12 +35,34 @@ const RiderRegister = () => {
     setLoading(true);
 
     try {
-      await signup(formData.email, formData.password, formData.name, 'rider', {
-        phone: formData.phone,
-        ghanaCardNumber: formData.ghanaCardNumber,
-        vehicleType: formData.vehicleType
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: { name: formData.name, role: 'rider' }
+        }
       });
-      navigate('/rider');
+
+      if (signUpError) throw signUpError;
+
+      if (!data.user) {
+        throw new Error('Failed to create user');
+      }
+
+      const { error: insertError } = await supabase
+        .from('users')
+        .insert({
+          id: data.user.id,
+          email: formData.email,
+          name: formData.name,
+          role: 'rider',
+          phone: formData.phone,
+          status: 'active'
+        });
+
+      if (insertError) console.error('User insert error:', insertError);
+
+      navigate('/rider/login');
     } catch (err) {
       setError(err.message || 'Failed to create account');
     } finally {
@@ -111,18 +131,6 @@ const RiderRegister = () => {
                 <option value="bicycle">Bicycle</option>
                 <option value="car">Car</option>
               </select>
-            </div>
-
-            <div className="form-group">
-              <label>Ghana Card Number</label>
-              <input
-                type="text"
-                name="ghanaCardNumber"
-                value={formData.ghanaCardNumber}
-                onChange={handleChange}
-                required
-                placeholder="Enter your Ghana Card number"
-              />
             </div>
 
             <div className="form-group">
