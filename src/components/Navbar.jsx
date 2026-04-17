@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/SupabaseAuthContext';
 import { useCart } from '../context/CartContext';
@@ -10,8 +10,11 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleLogout = async () => {
+    setDropdownOpen(false);
     await logout();
     navigate('/');
   };
@@ -33,6 +36,33 @@ const Navbar = () => {
       default: return '/';
     }
   };
+
+  const getUserName = () => {
+    if (userData?.name) return userData.name.split(' ')[0];
+    if (user?.email) return user.email.split('@')[0];
+    return 'User';
+  };
+
+  const getRoleBadge = () => {
+    switch (userData?.role) {
+      case 'super_admin': return 'Super Admin';
+      case 'admin': return 'Admin';
+      case 'seller': return 'Seller';
+      case 'rider': return 'Rider';
+      default: return 'Buyer';
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <nav className="jumia-navbar">
@@ -59,20 +89,45 @@ const Navbar = () => {
 
           <div className="nav-actions">
             {user ? (
-              <div className="nav-item account-item logged-in">
-                <span className="nav-icon">👤</span>
-                <div className="nav-text">
-                  <small>Hello, {userData?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'User'}</small>
-                  <strong>Account</strong>
+              <div 
+                className={`nav-item account-item ${dropdownOpen ? 'active' : ''}`} 
+                ref={dropdownRef}
+                onMouseEnter={() => setDropdownOpen(true)}
+                onMouseLeave={() => setDropdownOpen(false)}
+              >
+                <div className="account-trigger">
+                  <span className="nav-icon">👤</span>
+                  <div className="nav-text">
+                    <small>Hello, {getUserName()}</small>
+                    <strong>Account</strong>
+                  </div>
                 </div>
-                <div className="account-dropdown">
-                  <Link to={getDashboardLink()}>My Dashboard</Link>
-                  <Link to="/my-orders">My Orders</Link>
-                  <Link to="/wishlist">Wishlist</Link>
-                  <Link to="/chat">Messages</Link>
-                  <Link to="/profile">Profile</Link>
+                
+                <div className={`account-dropdown ${dropdownOpen ? 'show' : ''}`}>
+                  <div className="dropdown-header">
+                    <span className="user-name">{userData?.name || 'User'}</span>
+                    <span className={`role-badge ${userData?.role || 'buyer'}`}>{getRoleBadge()}</span>
+                  </div>
                   <div className="dropdown-divider"></div>
-                  <button onClick={handleLogout} className="logout-btn">Logout</button>
+                  <Link to={getDashboardLink()} onClick={() => setDropdownOpen(false)}>
+                    <span className="dropdown-icon">📊</span> My Dashboard
+                  </Link>
+                  <Link to="/my-orders" onClick={() => setDropdownOpen(false)}>
+                    <span className="dropdown-icon">📦</span> My Orders
+                  </Link>
+                  <Link to="/wishlist" onClick={() => setDropdownOpen(false)}>
+                    <span className="dropdown-icon">❤️</span> Wishlist
+                  </Link>
+                  <Link to="/chat" onClick={() => setDropdownOpen(false)}>
+                    <span className="dropdown-icon">💬</span> Messages
+                  </Link>
+                  <Link to="/profile" onClick={() => setDropdownOpen(false)}>
+                    <span className="dropdown-icon">⚙️</span> Profile
+                  </Link>
+                  <div className="dropdown-divider"></div>
+                  <button onClick={handleLogout} className="logout-btn">
+                    <span className="dropdown-icon">🚪</span> Logout
+                  </button>
                 </div>
               </div>
             ) : (
@@ -116,23 +171,24 @@ const Navbar = () => {
       </div>
 
       <div className={`mobile-menu ${menuOpen ? 'active' : ''}`}>
-        <Link to="/products">Products</Link>
-        <Link to="/market-pricing">Market Prices</Link>
-        <Link to="/get-started">Get Started</Link>
-        <Link to="/seller/register">Become a Seller</Link>
-        <Link to="/rider/register">Deliver with Us</Link>
+        <Link to="/products" onClick={() => setMenuOpen(false)}>Products</Link>
+        <Link to="/market-pricing" onClick={() => setMenuOpen(false)}>Market Prices</Link>
+        <Link to="/get-started" onClick={() => setMenuOpen(false)}>Get Started</Link>
+        <Link to="/seller/register" onClick={() => setMenuOpen(false)}>Become a Seller</Link>
+        <Link to="/rider/register" onClick={() => setMenuOpen(false)}>Deliver with Us</Link>
         <div className="mobile-divider"></div>
         {user ? (
           <>
-            <Link to={getDashboardLink()}>Dashboard</Link>
-            <Link to="/my-orders">My Orders</Link>
-            <Link to="/wishlist">Wishlist</Link>
+            <Link to={getDashboardLink()} onClick={() => setMenuOpen(false)}>Dashboard</Link>
+            <Link to="/my-orders" onClick={() => setMenuOpen(false)}>My Orders</Link>
+            <Link to="/wishlist" onClick={() => setMenuOpen(false)}>Wishlist</Link>
+            <Link to="/profile" onClick={() => setMenuOpen(false)}>Profile</Link>
             <button onClick={handleLogout}>Logout</button>
           </>
         ) : (
           <>
-            <Link to="/login">Sign In</Link>
-            <Link to="/register">Register</Link>
+            <Link to="/login" onClick={() => setMenuOpen(false)}>Sign In</Link>
+            <Link to="/register" onClick={() => setMenuOpen(false)}>Register</Link>
           </>
         )}
       </div>
