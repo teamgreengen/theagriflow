@@ -38,6 +38,44 @@ export const AuthProvider = ({ children }) => {
     setUserData(null);
   };
 
+  const signup = async (email, password, name, role, additionalData = {}) => {
+    console.log('Signup attempt:', email, 'role:', role);
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name, role }
+      }
+    });
+    
+    if (error) {
+      console.error('Signup error:', error.message);
+      throw new Error(error.message);
+    }
+    
+    if (!data.user) {
+      throw new Error('Failed to create user');
+    }
+    
+    const { error: insertError } = await supabase
+      .from('users')
+      .insert({
+        id: data.user.id,
+        email,
+        name,
+        role,
+        phone: additionalData.phone || null,
+        status: 'active'
+      });
+    
+    if (insertError) {
+      console.error('User insert error:', insertError);
+    }
+    
+    return data.user;
+  };
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -100,6 +138,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
+    signup,
     refreshUser: async () => {
       if (user) {
         const { data } = await supabase
