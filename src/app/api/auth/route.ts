@@ -10,14 +10,14 @@ export async function POST(request: Request) {
     if (action === 'register') {
       const result = await registerUser(name, email, password, phone)
       if (!result.success) return NextResponse.json(result, { status: 400 })
-      await setSession(result.userId, false)
+      await setSession(result.userId as string, email, false)
       return NextResponse.json({ success: true, user: result })
     }
 
     if (action === 'login') {
       const result = await loginUser(email, password)
       if (!result.success) return NextResponse.json(result, { status: 401 })
-      await setSession(result.user.id, result.user.isAdmin)
+      await setSession(result.user.id, result.user.email, result.user.isAdmin)
       return NextResponse.json(result)
     }
 
