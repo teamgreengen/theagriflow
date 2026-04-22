@@ -1,4 +1,4 @@
--- Supabase SQL Schema for StingyMarkets
+-- Supabase SQL Schema for AgriFlow
 -- Run in Supabase SQL Editor
 
 -- Users
