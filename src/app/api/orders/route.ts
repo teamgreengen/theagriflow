@@ -38,10 +38,10 @@ export async function POST(request: NextRequest) {
     if (paymentType === 2) {
       const { data: user } = await supabaseAdmin.from('users').select('email').eq('id', (session as any).userId).single()
       const paystackData = initializePayment(result.finalVal, user?.email, result.orderId)
-      return NextResponse.json({ success: true, ...result, paymentRequired: true, paystack: paystackData })
+      return NextResponse.json({ ...result, paymentRequired: true, paystack: paystackData })
     }
     
-    return NextResponse.json({ success: true, ...result })
+    return NextResponse.json(result)
   } catch (error) {
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 })
   }
