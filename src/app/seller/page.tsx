@@ -75,8 +75,8 @@ export default function SellerDashboard() {
                   <tr key={order.id} className="border-b">
                     <td className="py-2">{order.o_id}</td>
                     <td className="py-2">{new Date(order.created_at).toLocaleDateString()}</td>
-                    <td className="py-2">GH&#8373;{order.final_val}</td>
-                    <td className="py-2"><span className={`px-2 py-1 rounded text-sm ${order.order_status === 5 ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}`}>{(['Placing', 'Placed', 'Assigned', 'Out for Delivery', 'Delivered', 'Undelivered'][order.order_status - 1]}</span></td>
+                    <td className="py-2">GH₵{order.final_val}</td>
+                    <td className="py-2"><span className={`px-2 py-1 rounded text-sm ${order.order_status === 5 ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}`}>{order.order_status === 5 ? 'Delivered' : 'Pending'}</span></td>
                   </tr>
                 ))}
               </tbody>

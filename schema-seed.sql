@@ -194,7 +194,37 @@ CREATE TABLE IF NOT EXISTS delivery_boys (
   email TEXT UNIQUE,
   phone TEXT,
   password TEXT NOT NULL,
+  wallet DECIMAL(10,2) DEFAULT 0,
   status INTEGER DEFAULT 1,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Withdrawal Requests
+CREATE TABLE IF NOT EXISTS withdrawal_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  seller_id UUID REFERENCES sellers(id),
+  amount DECIMAL(10,2),
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Issues/Support
+CREATE TABLE IF NOT EXISTS issues (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id),
+  order_id UUID REFERENCES orders(id),
+  description TEXT,
+  status INTEGER DEFAULT 1,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Wallet for sellers
+CREATE TABLE IF NOT EXISTS seller_wallet (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  seller_id UUID REFERENCES sellers(id),
+  amount DECIMAL(10,2),
+  type TEXT,
+  description TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -216,6 +246,9 @@ ALTER TABLE wallet_txn ENABLE ROW LEVEL SECURITY;
 ALTER TABLE promo_codes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE dv_time ENABLE ROW LEVEL SECURITY;
 ALTER TABLE delivery_boys ENABLE ROW LEVEL SECURITY;
+ALTER TABLE withdrawal_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE issues ENABLE ROW LEVEL SECURITY;
+ALTER TABLE seller_wallet ENABLE ROW LEVEL SECURITY;
 
 -- Allow all for now (add proper policies for production)
 CREATE POLICY "allow_all" ON users FOR ALL USING (true) WITH CHECK (true);
@@ -235,6 +268,9 @@ CREATE POLICY "allow_all" ON wallet_txn FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "allow_all" ON promo_codes FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "allow_all" ON dv_time FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "allow_all" ON delivery_boys FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "allow_all" ON withdrawal_requests FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "allow_all" ON issues FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "allow_all" ON seller_wallet FOR ALL USING (true) WITH CHECK (true);
 
 -- Sample Data
 INSERT INTO categories (category) VALUES 

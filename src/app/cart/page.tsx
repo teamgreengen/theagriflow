@@ -66,7 +66,7 @@ export default function CartPage() {
               <div className="w-24 h-24 bg-gray-200 rounded" />
               <div className="flex-1">
                 <h3 className="font-semibold">{item.product?.product_name}</h3>
-                <p className="text-green-600 font-bold">GH&#8373;{item.product?.fa}</p>
+                <p className="text-green-600 font-bold">GH₵{item.product?.fa}</p>
                 <div className="flex items-center gap-2 mt-2">
                   <button onClick={() => updateQty(item.id, item.qty - 1)} className="w-8 h-8 border rounded">-</button>
                   <span className="w-8 text-center">{item.qty}</span>
@@ -80,10 +80,10 @@ export default function CartPage() {
         <div className="bg-white p-6 rounded-lg shadow h-fit">
           <h3 className="font-bold text-lg mb-4">Order Summary</h3>
           <div className="space-y-2">
-            <div className="flex justify-between"><span>Subtotal</span><span>GH&#8373;{subtotal.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>Delivery Fee</span><span>GH&#8373;{deliveryFee.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>Subtotal</span><span>GH₵{subtotal.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>Delivery Fee</span><span>GH₵{deliveryFee.toFixed(2)}</span></div>
             <div className="flex justify-between font-bold text-lg border-t pt-2">
-              <span>Total</span><span>GH&#8373;{total.toFixed(2)}</span>
+              <span>Total</span><span>GH₵{total.toFixed(2)}</span>
             </div>
           </div>
           <a href="/checkout" className="block w-full mt-4 bg-green-600 text-white py-3 rounded-lg text-center font-semibold hover:bg-green-700">
