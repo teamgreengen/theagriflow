@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-browser';
 import Link from 'next/link';
-import bcrypt from 'bcryptjs';
 
 export default function DeliveryBoyRegister() {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '' });
@@ -24,14 +23,12 @@ export default function DeliveryBoyRegister() {
       setLoading(false);
       return;
     }
-
-    const hashedPassword = await bcrypt.hash(formData.password, 10);
     
     const { error: insertError } = await supabase.from('delivery_boys').insert({
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
-      password: hashedPassword,
+      password: formData.password,
       status: 1,
     });
 
