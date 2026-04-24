@@ -8,3 +8,5 @@ build/
 *.log
 .DS_Store
 .vercel
+ .env.local
+ next-vercel.bundle
