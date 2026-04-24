@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase-browser';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
