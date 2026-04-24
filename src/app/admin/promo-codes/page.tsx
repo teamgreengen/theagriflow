@@ -87,8 +87,8 @@ export default function AdminPromoCodes() {
                 {promoCodes.map((promo) => (
                   <tr key={promo.id}>
                     <td className="px-4 py-4 font-mono font-bold">{promo.code}</td>
-                    <td className="px-4 py-4">GH&#8373;{promo.discount}</td>
-                    <td className="px-4 py-4">GH&#8373;{promo.min_order}</td>
+                    <td className="px-4 py-4">GH₵{promo.discount}</td>
+                    <td className="px-4 py-4">GH₵{promo.min_order}</td>
                     <td className="px-4 py-4">
                       <span className={`px-2 py-1 rounded text-sm ${promo.status === 1 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
                         {promo.status === 1 ? 'Active' : 'Inactive'}
@@ -122,7 +122,7 @@ export default function AdminPromoCodes() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Discount Amount (GH&#8373;)</label>
+                  <label className="block text-sm font-medium text-gray-700">Discount Amount (GH₵)</label>
                   <input
                     type="number"
                     value={formData.discount}
@@ -132,7 +132,7 @@ export default function AdminPromoCodes() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Minimum Order (GH&#8373;)</label>
+                  <label className="block text-sm font-medium text-gray-700">Minimum Order (GH₵)</label>
                   <input
                     type="number"
                     value={formData.min_order}

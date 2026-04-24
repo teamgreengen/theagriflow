@@ -88,12 +88,12 @@ export default function UserOrders() {
                   {order.order_detail?.map((item: any) => (
                     <div key={item.id} className="flex justify-between py-1">
                       <span>{item.product?.product_name} x {item.qty}</span>
-                      <span>GH&#8373;{item.price * item.qty}</span>
+                      <span>GH₵{item.price * item.qty}</span>
                     </div>
                   ))}
                   <div className="border-t pt-2 mt-2 flex justify-between font-bold">
                     <span>Total</span>
-                    <span>GH&#8373;{order.final_val}</span>
+                    <span>GH₵{order.final_val}</span>
                   </div>
                 </div>
 

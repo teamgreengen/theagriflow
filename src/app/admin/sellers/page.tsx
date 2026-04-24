@@ -75,7 +75,7 @@ export default function AdminSellers() {
                     <td className="px-4 py-4">{seller.b_name}</td>
                     <td className="px-4 py-4">{seller.email}</td>
                     <td className="px-4 py-4">{seller.phone || '-'}</td>
-                    <td className="px-4 py-4">GH&#8373;{seller.wallet || 0}</td>
+                    <td className="px-4 py-4">GH₵{seller.wallet || 0}</td>
                     <td className="px-4 py-4">
                       <span className={`px-2 py-1 rounded text-sm ${seller.status === 1 ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}`}>
                         {seller.status === 1 ? 'Active' : 'Pending'}

@@ -103,7 +103,7 @@ export default function AdminOrders() {
                     <td className="px-4 py-4">{order.o_id}</td>
                     <td className="px-4 py-4">{order.user?.name}<br/><span className="text-gray-500">{order.user?.phone}</span></td>
                     <td className="px-4 py-4">{order.address?.address}<br/>{order.address?.city_id?.city_name}</td>
-                    <td className="px-4 py-4">GH&#8373;{order.final_val}</td>
+                    <td className="px-4 py-4">GH₵{order.final_val}</td>
                     <td className="px-4 py-4"><span className={`px-2 py-1 rounded text-sm ${getStatusColor(order.order_status)}`}>{getStatusText(order.order_status)}</span></td>
                     <td className="px-4 py-4">{order.dv_boy?.name || '-'}</td>
                     <td className="px-4 py-4">

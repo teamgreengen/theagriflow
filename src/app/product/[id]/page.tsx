@@ -45,8 +45,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           <h1 className="text-2xl font-bold mb-2">{product.product_name}</h1>
           <p className="text-gray-500 mb-4">Sold by {product.seller?.f_name}</p>
           <div className="flex items-center gap-4 mb-4">
-            <span className="text-2xl font-bold text-green-600">GH&#8373;{product.fa}</span>
-            <span className="text-lg text-gray-400 line-through">GH&#8373;{product.price}</span>
+            <span className="text-2xl font-bold text-green-600">GH₵{product.fa}</span>
+            <span className="text-lg text-gray-400 line-through">GH₵{product.price}</span>
           </div>
           <div className="mb-4">
             {product.qty > 0 ? <span className="text-green-600">In Stock ({product.qty} available)</span> : <span className="text-red-500">Out of Stock</span>}

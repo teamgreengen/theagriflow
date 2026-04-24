@@ -53,7 +53,7 @@ export default function AccountPage() {
               <div><p className="text-gray-500">Name</p><p className="font-medium">{profile?.name}</p></div>
               <div><p className="text-gray-500">Email</p><p className="font-medium">{profile?.email}</p></div>
               <div><p className="text-gray-500">Phone</p><p className="font-medium">{profile?.phone || '-'}</p></div>
-              <div><p className="text-gray-500">Wallet Balance</p><p className="font-medium text-green-600">GH&#8373;{profile?.wallet || 0}</p></div>
+              <div><p className="text-gray-500">Wallet Balance</p><p className="font-medium text-green-600">GH₵{profile?.wallet || 0}</p></div>
             </div>
           </div>
 

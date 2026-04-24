@@ -77,8 +77,8 @@ export default function SellerProductsPage() {
                       <p className="text-sm text-gray-500">{product.shrt_desc?.substring(0, 50)}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-bold text-green-600">GH&#8373;{product.fa}</p>
-                      <p className="text-sm text-gray-400 line-through">GH&#8373;{product.price}</p>
+                      <p className="font-bold text-green-600">GH₵{product.fa}</p>
+                      <p className="text-sm text-gray-400 line-through">GH₵{product.price}</p>
                     </td>
                     <td className="px-6 py-4">{product.qty}</td>
                     <td className="px-6 py-4">

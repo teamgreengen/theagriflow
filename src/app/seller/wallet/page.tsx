@@ -80,7 +80,7 @@ export default function SellerWallet() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-white p-6 rounded-lg shadow mb-6">
           <p className="text-gray-500">Wallet Balance</p>
-          <p className="text-4xl font-bold text-green-600">GH&#8373;{wallet}</p>
+          <p className="text-4xl font-bold text-green-600">GH₵{wallet}</p>
           <p className="text-sm text-gray-500 mt-2">Commission: {seller?.commission || 5}% per order</p>
         </div>
 
@@ -117,7 +117,7 @@ export default function SellerWallet() {
                     <p className="text-sm text-gray-500">{new Date(txn.created_at).toLocaleDateString()}</p>
                   </div>
                   <p className={`font-bold ${txn.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {txn.amount > 0 ? '+' : ''}GH&#8373;{txn.amount}
+                    {txn.amount > 0 ? '+' : ''}GH₵{txn.amount}
                   </p>
                 </div>
               ))}

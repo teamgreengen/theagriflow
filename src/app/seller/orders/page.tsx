@@ -98,7 +98,7 @@ export default function SellerOrders() {
                   <tr key={order.id}>
                     <td className="px-6 py-4 whitespace-nowrap">{order.o_id}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{new Date(order.created_at).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">GH&#8373;{order.final_val}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">GH₵{order.final_val}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 rounded text-sm ${getStatusColor(order.order_status)}`}>
                         {getStatusText(order.order_status)}

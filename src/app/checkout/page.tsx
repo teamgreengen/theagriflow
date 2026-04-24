@@ -126,9 +126,9 @@ export default function CheckoutPage() {
             <p className="font-medium">Cash on Delivery</p>
           </div>
           <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex justify-between"><span>Subtotal</span><span>GH&#8373;{subtotal.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>Delivery</span><span>GH&#8373;{deliveryFee.toFixed(2)}</span></div>
-            <div className="flex justify-between font-bold text-lg border-t mt-2 pt-2"><span>Total</span><span>GH&#8373;{total.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>Subtotal</span><span>GH₵{subtotal.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>Delivery</span><span>GH₵{deliveryFee.toFixed(2)}</span></div>
+            <div className="flex justify-between font-bold text-lg border-t mt-2 pt-2"><span>Total</span><span>GH₵{total.toFixed(2)}</span></div>
           </div>
           <div className="flex gap-4">
             <button onClick={() => setStep(2)} className="flex-1 py-3 border rounded-lg">Back</button>
