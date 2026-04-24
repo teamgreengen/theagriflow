@@ -23,11 +23,23 @@ export async function validatePromoCode(code: string, orderTotal: number) {
 }
 
 export async function applyPromoCode(cartId: string, promoId: string, discount: number) {
+  // Fetch current cart to calculate new final_amt server-side without using raw()
+  const { data: cart, error: fetchError } = await supabaseAdmin.from('cart')
+    .select('final_amt')
+    .eq('id', cartId)
+    .maybeSingle()
+
+  if (fetchError || !cart || typeof cart.final_amt !== 'number') {
+    // If we can't read final_amt, fail gracefully to avoid corrupt state
+    return { success: false, message: fetchError?.message ?? 'Unable to apply promo' }
+  }
+  const newFinalAmt = cart.final_amt - discount
+
   const { error } = await supabaseAdmin.from('cart')
     .update({ 
       promo: discount, 
       is_applied: 1,
-      final_amt: supabaseAdmin.raw(`final_amt - ${discount}`)
+      final_amt: newFinalAmt
     })
     .eq('id', cartId)
   
