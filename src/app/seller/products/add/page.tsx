@@ -16,7 +16,8 @@ export default function AddProductPage() {
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: auth } = await supabase.auth.getUser();
+    const user = auth?.user;
     if (!user) { router.push('/login'); return; }
     const { data: sellerData } = await supabase.from('sellers').select('*').eq('email', user.email).single();
     if (!sellerData) { router.push('/seller/register'); return; }
