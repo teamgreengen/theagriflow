@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
     if (action === 'login') {
       const result = await loginUser(email, password)
-      if (!result.success) return NextResponse.json(result, { status: 401 })
+      if (!result.success || !result.user) return NextResponse.json(result, { status: 401 })
       await setSession(result.user.id, result.user.email, result.user.isAdmin)
       return NextResponse.json(result)
     }
