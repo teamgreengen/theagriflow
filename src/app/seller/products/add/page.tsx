@@ -30,6 +30,10 @@ export default function AddProductPage() {
     const sku = 'SKU' + Date.now().toString();
     const city = localStorage.getItem('agriflow_city') || '';
     const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     const { data: sellerData } = await supabase.from('sellers').select('*').eq('email', user.email).single();
     
     await supabase.from('products').insert({
